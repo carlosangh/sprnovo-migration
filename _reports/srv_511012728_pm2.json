@@ -1,0 +1,212 @@
+{
+  "pm2_processes": {
+    "summary": "15 processos PM2 ativos, 5 parados",
+    "active_processes": [
+      {
+        "id": 1,
+        "name": "clg-core",
+        "version": "0.39.7",
+        "mode": "fork",
+        "pid": 2660419,
+        "uptime": "42h",
+        "restarts": 5,
+        "status": "online",
+        "cpu": "0%",
+        "memory": "200.8mb",
+        "user": "root"
+      },
+      {
+        "id": 2,
+        "name": "clg-worker",
+        "version": "0.39.7",
+        "mode": "fork", 
+        "pid": 2660412,
+        "uptime": "42h",
+        "restarts": 5,
+        "status": "online",
+        "cpu": "0%",
+        "memory": "209.9mb",
+        "user": "root"
+      },
+      {
+        "id": 6,
+        "name": "spr-ai-commercial",
+        "version": "1.0.0",
+        "mode": "fork",
+        "pid": 2660455,
+        "uptime": "42h", 
+        "restarts": 7,
+        "status": "online",
+        "cpu": "0%",
+        "memory": "77.0mb",
+        "user": "root"
+      },
+      {
+        "id": 7,
+        "name": "spr-analytics", 
+        "version": "1.0.0",
+        "mode": "fork",
+        "pid": 2660469,
+        "uptime": "42h",
+        "restarts": 6,
+        "status": "online",
+        "cpu": "0%",
+        "memory": "80.1mb",
+        "user": "root"
+      },
+      {
+        "id": 8,
+        "name": "spr-automation",
+        "version": "1.0.0", 
+        "mode": "fork",
+        "pid": 2660471,
+        "uptime": "42h",
+        "restarts": 7,
+        "status": "online",
+        "cpu": "0%",
+        "memory": "77.8mb",
+        "user": "root"
+      },
+      {
+        "id": 4,
+        "name": "spr-backend-agent",
+        "version": "1.0.0",
+        "mode": "fork",
+        "pid": 2660431,
+        "uptime": "42h",
+        "restarts": 5,
+        "status": "online", 
+        "cpu": "0%",
+        "memory": "77.6mb",
+        "user": "root"
+      },
+      {
+        "id": 21,
+        "name": "spr-backend-production",
+        "version": "1.3.0",
+        "mode": "fork",
+        "pid": 1388455,
+        "uptime": "24h",
+        "restarts": "141x",
+        "status": "online",
+        "cpu": "0%",
+        "memory": "56.1mb",
+        "user": "root",
+        "port": 3002
+      },
+      {
+        "id": 3,
+        "name": "spr-coordinator",
+        "version": "1.0.0",
+        "mode": "fork",
+        "pid": 2660428,
+        "uptime": "42h",
+        "restarts": 8,
+        "status": "online",
+        "cpu": "0%",
+        "memory": "75.3mb",
+        "user": "root",
+        "port": 3001
+      },
+      {
+        "id": 12,
+        "name": "spr-real-data", 
+        "version": "1.3.0",
+        "mode": "fork",
+        "pid": 2660549,
+        "uptime": "42h",
+        "restarts": "2369x",
+        "status": "online",
+        "cpu": "0%",
+        "memory": "102.5mb",
+        "user": "root",
+        "port": 3010
+      },
+      {
+        "id": 9,
+        "name": "spr-typescript-pro",
+        "version": "1.0.0",
+        "mode": "fork",
+        "pid": 2660484,
+        "uptime": "42h",
+        "restarts": 5,
+        "status": "online",
+        "cpu": "0%",
+        "memory": "141.4mb",
+        "user": "root",
+        "port": 3008
+      },
+      {
+        "id": 5,
+        "name": "spr-whatsapp-agent",
+        "version": "1.3.0",
+        "mode": "fork",
+        "pid": 3218503,
+        "uptime": "0s",
+        "restarts": "605x",
+        "status": "online",
+        "cpu": "100%",
+        "memory": "56.6mb",
+        "user": "root"
+      }
+    ],
+    "stopped_processes": [
+      {
+        "id": 17,
+        "name": "spr-backend-complete",
+        "restarts": 1589,
+        "status": "stopped"
+      },
+      {
+        "id": 18,
+        "name": "spr-backend-emergency", 
+        "restarts": "159x",
+        "status": "stopped"
+      },
+      {
+        "id": 19,
+        "name": "spr-backend-final",
+        "restarts": "158x", 
+        "status": "stopped"
+      },
+      {
+        "id": 15,
+        "name": "spr-backend-main",
+        "restarts": "481x",
+        "status": "stopped"
+      },
+      {
+        "id": 16,
+        "name": "spr-backend-python",
+        "restarts": 214,
+        "status": "stopped"
+      }
+    ],
+    "modules": [
+      {
+        "id": 0,
+        "module": "pm2-logrotate",
+        "version": "2.7.0",
+        "pid": 1219,
+        "status": "online",
+        "restarts": 0,
+        "cpu": "0%",
+        "memory": "46.8mb",
+        "user": "root"
+      }
+    ],
+    "analysis": {
+      "total_memory_usage": "1.2GB+",
+      "high_restart_services": [
+        "spr-real-data (2369 restarts)",
+        "spr-backend-production (141 restarts)", 
+        "spr-whatsapp-agent (605 restarts)"
+      ],
+      "critical_services": [
+        "spr-backend-production (porta 3002)",
+        "spr-real-data (porta 3010)",
+        "spr-coordinator (porta 3001)"
+      ]
+    }
+  }
+}

@@ -1,0 +1,203 @@
+# Prometheus Alert Rules for SPR System
+# These rules define when alerts should be triggered
+
+groups:
+  - name: spr_system_alerts
+    rules:
+      # High CPU usage alert
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 2m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is above 80% for more than 2 minutes on {{ $labels.instance }}"
+
+      # High memory usage alert
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 85
+        for: 2m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is above 85% for more than 2 minutes on {{ $labels.instance }}"
+
+      # High disk usage alert
+      - alert: HighDiskUsage
+        expr: (node_filesystem_size_bytes{fstype!="tmpfs"} - node_filesystem_free_bytes{fstype!="tmpfs"}) / node_filesystem_size_bytes{fstype!="tmpfs"} * 100 > 90
+        for: 1m
+        labels:
+          severity: critical
+          service: system
+        annotations:
+          summary: "High disk usage detected"
+          description: "Disk usage is above 90% on {{ $labels.device }} for {{ $labels.instance }}"
+
+      # Service down alerts
+      - alert: SPRBackendDown
+        expr: up{job="spr-backend"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          service: spr-backend
+        annotations:
+          summary: "SPR Backend service is down"
+          description: "The SPR Backend service has been down for more than 30 seconds"
+
+      - alert: SPRAnalyticsDown
+        expr: up{job="spr-analytics"} == 0
+        for: 30s
+        labels:
+          severity: warning
+          service: spr-analytics
+        annotations:
+          summary: "SPR Analytics service is down"
+          description: "The SPR Analytics service has been down for more than 30 seconds"
+
+      # High response time alerts
+      - alert: HighResponseTime
+        expr: http_request_duration_seconds{quantile="0.95"} > 5
+        for: 1m
+        labels:
+          severity: warning
+          service: spr-backend
+        annotations:
+          summary: "High response time detected"
+          description: "95th percentile response time is above 5 seconds for {{ $labels.job }}"
+
+      # Database connection alerts
+      - alert: DatabaseConnectionHigh
+        expr: pg_stat_activity_count > 80
+        for: 2m
+        labels:
+          severity: warning
+          service: postgresql
+        annotations:
+          summary: "High number of database connections"
+          description: "PostgreSQL has more than 80 active connections"
+
+      # Nginx error rate alert
+      - alert: HighNginxErrorRate
+        expr: rate(nginx_http_requests_total{status=~"5.."}[5m]) / rate(nginx_http_requests_total[5m]) * 100 > 5
+        for: 2m
+        labels:
+          severity: warning
+          service: nginx
+        annotations:
+          summary: "High Nginx error rate"
+          description: "Nginx 5xx error rate is above 5% for the last 5 minutes"
+
+      # SSL certificate expiry alert
+      - alert: SSLCertificateExpiringSoon
+        expr: probe_ssl_earliest_cert_expiry - time() < 86400 * 7  # 7 days
+        for: 1h
+        labels:
+          severity: warning
+          service: ssl
+        annotations:
+          summary: "SSL certificate expiring soon"
+          description: "SSL certificate for {{ $labels.instance }} will expire in less than 7 days"
+
+      # Log error rate alert
+      - alert: HighErrorLogRate
+        expr: increase(log_messages_total{level="error"}[5m]) > 10
+        for: 1m
+        labels:
+          severity: warning
+          service: application
+        annotations:
+          summary: "High error log rate"
+          description: "More than 10 error messages logged in the last 5 minutes"
+
+  - name: spr_application_alerts
+    rules:
+      # Application-specific alerts
+      - alert: FailedUserLogins
+        expr: increase(user_login_failures_total[5m]) > 20
+        for: 1m
+        labels:
+          severity: warning
+          service: authentication
+        annotations:
+          summary: "High number of failed login attempts"
+          description: "More than 20 failed login attempts in the last 5 minutes"
+
+      - alert: QueueBacklog
+        expr: queue_size > 1000
+        for: 2m
+        labels:
+          severity: warning
+          service: queue
+        annotations:
+          summary: "Queue backlog detected"
+          description: "Queue size is above 1000 items for more than 2 minutes"
+
+      - alert: CacheHitRateLow
+        expr: cache_hit_ratio < 0.8
+        for: 5m
+        labels:
+          severity: warning
+          service: cache
+        annotations:
+          summary: "Low cache hit rate"
+          description: "Cache hit rate is below 80% for the last 5 minutes"
+
+      # Data integrity alerts
+      - alert: DatabaseQuerySlow
+        expr: pg_stat_statements_mean_time_ms > 1000
+        for: 2m
+        labels:
+          severity: warning
+          service: database
+        annotations:
+          summary: "Slow database queries detected"
+          description: "Average query time is above 1 second"
+
+  - name: spr_infrastructure_alerts
+    rules:
+      # Infrastructure monitoring
+      - alert: NodeExporterDown
+        expr: up{job="node-exporter"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: monitoring
+        annotations:
+          summary: "Node Exporter is down"
+          description: "Node Exporter has been down for more than 1 minute"
+
+      - alert: PrometheusTargetDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: warning
+          service: monitoring
+        annotations:
+          summary: "Prometheus target is down"
+          description: "{{ $labels.job }} target {{ $labels.instance }} is down"
+
+      # System load alerts
+      - alert: HighSystemLoad
+        expr: node_load15 / count(node_cpu_seconds_total{mode="idle"}) by (instance) > 2
+        for: 5m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "High system load"
+          description: "System load is above 2.0 for more than 5 minutes on {{ $labels.instance }}"
+
+      # File descriptor usage
+      - alert: HighFileDescriptorUsage
+        expr: process_open_fds / process_max_fds * 100 > 80
+        for: 2m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "High file descriptor usage"
+          description: "File descriptor usage is above 80% for {{ $labels.job }}"

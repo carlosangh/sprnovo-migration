@@ -1,0 +1,112 @@
+# Prometheus Configuration for SPR System
+# This file configures Prometheus to monitor the SPR application and infrastructure
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'spr-system'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - localhost:9093
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'
+rule_files:
+  - "alert_rules.yml"
+  - "recording_rules.yml"
+
+# Scrape configuration
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Node Exporter (system metrics)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['localhost:9100']
+    scrape_interval: 10s
+    metrics_path: /metrics
+
+  # SPR Backend Application
+  - job_name: 'spr-backend'
+    static_configs:
+      - targets: ['localhost:3002']
+    metrics_path: /metrics
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # SPR Analytics Engine
+  - job_name: 'spr-analytics'
+    static_configs:
+      - targets: ['localhost:8000']
+    metrics_path: /metrics
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # Nginx metrics (if nginx-prometheus-exporter is installed)
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['localhost:9113']
+    scrape_interval: 30s
+
+  # PostgreSQL metrics (if postgres_exporter is installed)
+  - job_name: 'postgresql'
+    static_configs:
+      - targets: ['localhost:9187']
+    scrape_interval: 30s
+
+  # Redis metrics (if redis_exporter is installed)
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['localhost:9121']
+    scrape_interval: 30s
+
+  # PM2 metrics (if pm2-prometheus-exporter is configured)
+  - job_name: 'pm2'
+    static_configs:
+      - targets: ['localhost:9209']
+    scrape_interval: 30s
+
+  # Custom application health checks
+  - job_name: 'spr-health'
+    static_configs:
+      - targets: ['localhost:3002']
+    metrics_path: /health
+    scrape_interval: 60s
+    scrape_timeout: 5s
+
+  # Blackbox exporter for external monitoring
+  - job_name: 'blackbox'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+        - https://yourdomain.com
+        - https://staging.yourdomain.com
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: localhost:9115
+
+  # Docker containers (if cAdvisor is installed)
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['localhost:8080']
+    scrape_interval: 30s
+
+# Remote write configuration (optional - for long-term storage)
+# remote_write:
+#   - url: "https://your-remote-prometheus-instance/api/v1/write"
+#     basic_auth:
+#       username: "your-username"
+#       password: "your-password"

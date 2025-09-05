@@ -1,0 +1,243 @@
+{
+  "production_validation": {
+    "description": "Configurações para validação rigorosa em ambiente de produção",
+    "version": "1.0.0",
+    "last_updated": "2025-09-02",
+    
+    "environment": {
+      "required_vars": {
+        "NODE_ENV": "production",
+        "LICENSE_MODE": "production", 
+        "LICENSE_MOCK": ["0", "false"],
+        "NO_MOCK": ["1", "true"]
+      },
+      "forbidden_vars": {
+        "DEBUG": ["1", "true"],
+        "DEVELOPMENT": ["1", "true"],
+        "MOCK_ENABLED": ["1", "true"]
+      }
+    },
+    
+    "security": {
+      "blocked_patterns": {
+        "user_agents": [
+          "Mock Client",
+          "MockClient", 
+          "mock-client",
+          "Test Client",
+          "TestClient",
+          "Postman",
+          "curl",
+          "wget"
+        ],
+        "client_ids": [
+          "mock-client",
+          "Mock Client",
+          "default-session",
+          "test-client",
+          "demo-client",
+          "fake-client"
+        ],
+        "license_keys": [
+          "MOCK-*",
+          "TEST-*",
+          "FAKE-*",
+          "DEV-*",
+          "DEMO-*",
+          "*-0000-*",
+          "*-FAKE-*",
+          "*-MOCK-*"
+        ]
+      },
+      
+      "build_scan": {
+        "forbidden_strings": [
+          "Mock Client",
+          "MOCK_LICENSE",
+          "mockLicense", 
+          "fake-license",
+          "test-license-key",
+          "default-session",
+          "mockSession",
+          "DEVELOPMENT_MODE",
+          "console.log",
+          "debugger;",
+          "TODO:",
+          "FIXME:",
+          "XXX:",
+          "HACK:"
+        ],
+        "scan_extensions": [".js", ".jsx", ".ts", ".tsx"],
+        "exclude_directories": ["node_modules", "test", "tests", "__tests__"]
+      }
+    },
+    
+    "api_validation": {
+      "critical_endpoints": [
+        {
+          "path": "/api/license/status",
+          "method": "GET",
+          "expected_without_license": {"active": false},
+          "expected_with_license": {"active": true},
+          "max_response_time_ms": 1000
+        },
+        {
+          "path": "/api/license/activate", 
+          "method": "POST",
+          "validates_license_format": true,
+          "rejects_mock_licenses": true,
+          "max_response_time_ms": 2000
+        },
+        {
+          "path": "/api/license/deactivate",
+          "method": "POST", 
+          "requires_valid_client": true,
+          "max_response_time_ms": 1000
+        },
+        {
+          "path": "/api/health",
+          "method": "GET",
+          "always_accessible": true,
+          "max_response_time_ms": 500
+        }
+      ],
+      
+      "protected_endpoints": [
+        "/api/metrics",
+        "/api/config",
+        "/api/generate-message",
+        "/api/whatsapp/*"
+      ],
+      
+      "middleware_tests": {
+        "license_gate": {
+          "should_block_without_license": true,
+          "should_allow_with_valid_license": true,
+          "should_reject_expired_license": true,
+          "should_reject_mock_patterns": true
+        },
+        "rate_limiting": {
+          "general_limit": 100,
+          "auth_limit": 10,
+          "window_minutes": 15
+        }
+      }
+    },
+    
+    "database_validation": {
+      "license_table": {
+        "required_columns": [
+          "id",
+          "license_key", 
+          "client_id",
+          "active",
+          "plan", 
+          "expires_at",
+          "created_at"
+        ],
+        "no_mock_data": {
+          "forbidden_client_ids": [
+            "mock-client",
+            "test-client", 
+            "demo-client",
+            "default-session"
+          ],
+          "forbidden_license_patterns": [
+            "MOCK-*",
+            "TEST-*", 
+            "FAKE-*"
+          ]
+        }
+      }
+    },
+    
+    "websocket_validation": {
+      "authentication_required": true,
+      "license_validation_required": true,
+      "periodic_license_check_minutes": 5,
+      "disconnect_on_license_expire": true
+    },
+    
+    "performance_thresholds": {
+      "api_response_times": {
+        "health_check_ms": 500,
+        "license_status_ms": 1000, 
+        "license_activation_ms": 2000,
+        "protected_endpoints_ms": 3000
+      },
+      "database_operations": {
+        "license_lookup_ms": 100,
+        "license_insert_ms": 500,
+        "license_update_ms": 200
+      },
+      "cache_performance": {
+        "hit_rate_minimum": 80,
+        "ttl_minutes": 5
+      }
+    },
+    
+    "regression_tests": {
+      "server_restart": {
+        "license_persistence": true,
+        "cache_rebuild": true,
+        "database_integrity": true
+      },
+      "load_testing": {
+        "concurrent_license_checks": 50,
+        "duration_seconds": 30,
+        "acceptable_failure_rate": 0.01
+      }
+    },
+    
+    "compliance": {
+      "no_sensitive_data_logs": true,
+      "no_hardcoded_secrets": true, 
+      "proper_error_handling": true,
+      "secure_headers": true,
+      "input_validation": true
+    },
+    
+    "monitoring": {
+      "required_metrics": [
+        "license_validations_per_minute",
+        "active_licenses_count", 
+        "license_activation_success_rate",
+        "api_response_times",
+        "cache_hit_rate",
+        "websocket_connections"
+      ],
+      "alert_thresholds": {
+        "license_validation_failures_per_minute": 10,
+        "api_error_rate_percentage": 5,
+        "response_time_95th_percentile_ms": 5000
+      }
+    }
+  },
+  
+  "test_data": {
+    "valid_license_formats": [
+      "SPR-ABCD-1234-5678-EFGH",
+      "SPR-TEST-1234-5678-ABCD"
+    ],
+    "invalid_license_formats": [
+      "INVALID-FORMAT",
+      "SPR-MOCK-MOCK-MOCK-MOCK", 
+      "SPR-0000-0000-0000-0000",
+      "FAKE-FAKE-FAKE-FAKE-FAKE",
+      "SHORT",
+      ""
+    ],
+    "test_clients": [
+      "production-test-client-1",
+      "production-test-client-2" 
+    ]
+  },
+  
+  "reporting": {
+    "output_formats": ["json", "html", "txt"],
+    "include_screenshots": true,
+    "include_logs": true,
+    "retention_days": 30,
+    "compress_old_reports": true
+  }
+}

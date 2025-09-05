@@ -1,0 +1,53 @@
+Path,Type,Size,Last Modified
+/home/cadu/spr_deployment,Directory,51M,2025-09-04
+/home/cadu/spr_deployment/spr_backend_complete_fixed.py.backup,Python script, Unicode text, UTF-8 text executable,32K,2025-09-03
+/home/cadu/spr_deployment/spr_backend_complete_fixed.py,Python script, Unicode text, UTF-8 text executable,60K,2025-09-03
+/home/cadu/spr_deployment/ecosystem.config.js,JavaScript source, ASCII text,4.0K,2025-09-02
+/home/cadu/spr_deployment/frontend_build,Directory,24K,2025-09-04
+/home/cadu/spr_deployment/frontend_build/src,Directory,8.0K,2025-09-04
+/home/cadu/spr_deployment/frontend_build/package.json,JSON text data,4.0K,2025-09-04
+/home/cadu/spr_deployment/frontend_build/public,Directory,8.0K,2025-09-04
+/home/cadu/spr_deployment/deploy_report.md,Unicode text, UTF-8 text,8.0K,2025-09-02
+/home/cadu/spr_deployment/spr_env,Directory,51M,2025-09-02
+/home/cadu/spr_deployment/spr_env/bin,Directory,48K,2025-09-02
+/home/cadu/spr_deployment/spr_env/pyvenv.cfg,ASCII text,4.0K,2025-09-02
+/home/cadu/spr_deployment/spr_env/lib,Directory,51M,2025-09-02
+/home/cadu/spr_deployment/spr_env/include,Directory,8.0K,2025-09-02
+/home/cadu/spr_deployment/spr_env/share,Directory,24K,2025-09-02
+/home/cadu/spr_deployment/spr_broadcast.db,SQLite 3.x database, last written using SQLite version 3045001, file counter 42, database pages 45, cookie 0x26, schema 4, UTF-8, version-valid-for 42,180K,2025-09-02
+/home/cadu/spr_deployment/build_frontend.sh,Bourne-Again shell script, Unicode text, UTF-8 text executable,4.0K,2025-09-04
+/home/cadu/spr_deployment/DEPLOY_FRONTEND.md,Unicode text, UTF-8 text,4.0K,2025-09-04
+/home/cadu/spr_deployment/build_frontend.py,Python script, Unicode text, UTF-8 text executable,8.0K,2025-09-04
+/home/cadu/spr_deployment/logs,Directory,60K,2025-09-02
+/home/cadu/spr_deployment/logs/staging-error.log,ASCII text,4.0K,2025-09-02
+/home/cadu/spr_deployment/logs/error.log,ASCII text,4.0K,2025-09-03
+/home/cadu/spr_deployment/logs/staging-out.log,Unicode text, UTF-8 text,4.0K,2025-09-02
+/home/cadu/spr_deployment/logs/out.log,Unicode text, UTF-8 text,16K,2025-09-04
+/home/cadu/spr_deployment/logs/staging-combined.log,Unicode text, UTF-8 text,4.0K,2025-09-02
+/home/cadu/spr_deployment/logs/combined.log,Unicode text, UTF-8 text,24K,2025-09-04
+/home/cadu/SPR,Directory,16K,2025-08-07
+/home/cadu/SPR/CADU TAREFAS REALIZADAS,Directory,12K,2025-08-07
+/home/cadu/SPR/CADU TAREFAS REALIZADAS/VALIDACAO_APIs_SPR_07082025.md,Unicode text, UTF-8 text,8.0K,2025-08-07
+/home/cadu/spr_versions,Directory,14M,2025-08-19
+/home/cadu/spr_versions/spr-mono,Directory,14M,2025-08-19
+/home/cadu/spr_versions/spr-mono/apps,Directory,6.6M,2025-08-19
+/home/cadu/spr_versions/spr-mono/infra,Directory,332K,2025-08-19
+/home/cadu/spr_versions/spr-mono/docs,Directory,240K,2025-08-19
+/home/cadu/spr_versions/spr-mono/README.md,Unicode text, UTF-8 text, with CRLF line terminators,4.0K,2025-08-19
+/home/cadu/spr_versions/spr-mono/scripts,Directory,20K,2025-08-19
+/home/cadu/spr_versions/spr-mono/env.example,Unicode text, UTF-8 text, with CRLF line terminators,4.0K,2025-08-19
+/home/cadu/spr_versions/spr-mono/vendor,Directory,104K,2025-08-19
+/home/cadu/spr_versions/spr-mono/RELATORIO_FINAL_MONOREPO.md,Unicode text, UTF-8 text, with CRLF line terminators,16K,2025-08-19
+/home/cadu/spr_versions/spr-mono/.vscode,Directory,4.0K,2025-08-19
+/home/cadu/spr_versions/spr-mono/~,Directory,124K,2025-08-19
+/home/cadu/spr_versions/spr-mono/.git,Directory,6.2M,2025-08-19
+/home/cadu/producao_royal_20250822,Directory,25M,2025-08-22
+/home/cadu/producao_royal_20250822/frontend_producao,Directory,25M,2025-08-22
+/home/cadu/producao_royal_20250822/frontend_producao/favicon-16x16.png,PNG image data, 9934 x 2563, 8-bit/color RGBA, non-interlaced,3.8M,2025-08-22
+/home/cadu/producao_royal_20250822/frontend_producao/assets,Directory,5.4M,2025-08-22
+/home/cadu/producao_royal_20250822/frontend_producao/favicon.ico,PNG image data, 9934 x 2563, 8-bit/color RGBA, non-interlaced,3.8M,2025-08-22
+/home/cadu/producao_royal_20250822/frontend_producao/manifest.json,JSON text data,4.0K,2025-08-22
+/home/cadu/producao_royal_20250822/frontend_producao/index.html,HTML document, Unicode text, UTF-8 text, with very long lines (1395), with no line terminators,4.0K,2025-08-22
+/home/cadu/producao_royal_20250822/frontend_producao/static,Directory,8.5M,2025-08-22
+/home/cadu/producao_royal_20250822/frontend_producao/favicon-32x32.png,PNG image data, 9934 x 2563, 8-bit/color RGBA, non-interlaced,3.8M,2025-08-22
+/home/cadu/producao_royal_20250822/frontend_producao/asset-manifest.json,JSON text data,4.0K,2025-08-22

@@ -1,0 +1,790 @@
+{
+  "database_overview": {
+    "main_database": "/home/cadu/spr-project/data/spr_central.db",
+    "total_tables": 9,
+    "table_names": [
+      "commodities",
+      "price_history",
+      "whatsapp_users",
+      "whatsapp_sessions",
+      "offers",
+      "whatsapp_messages",
+      "analytics_metrics",
+      "agentes_status",
+      "system_config"
+    ]
+  },
+  "entities": {
+    "commodities": {
+      "name": "commodities",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": true,
+          "default_value": null
+        },
+        {
+          "name": "symbol",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "name",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "category",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "unit",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "exchange",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "active",
+          "type": "BOOLEAN",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": "1"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": "CURRENT_TIMESTAMP"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null
+        }
+      ],
+      "indexes": [],
+      "foreign_keys": [],
+      "record_count": 6,
+      "purpose": "Catálogo de commodities agrícolas (produtos base)"
+    },
+    "price_history": {
+      "name": "price_history",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": true,
+          "default_value": null
+        },
+        {
+          "name": "commodity_id",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "price",
+          "type": "REAL",
+          "not_null": true,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "price_open",
+          "type": "REAL",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "price_high",
+          "type": "REAL",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "price_low",
+          "type": "REAL",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "price_close",
+          "type": "REAL",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "volume",
+          "type": "REAL",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "region",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "state",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "source",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "timestamp",
+          "type": "DATETIME",
+          "not_null": true,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": "CURRENT_TIMESTAMP"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_price_history_commodity_timestamp",
+          "unique": false,
+          "columns": [
+            "commodity_id",
+            "timestamp"
+          ]
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "commodity_id",
+          "referenced_table": "commodities",
+          "referenced_column": "id"
+        }
+      ],
+      "record_count": 6,
+      "purpose": "Histórico de preços das commodities"
+    },
+    "whatsapp_users": {
+      "name": "whatsapp_users",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": true,
+          "default_value": null
+        },
+        {
+          "name": "phone_number",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "name",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "user_type",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "preferred_commodities",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "notification_frequency",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": "'daily'"
+        },
+        {
+          "name": "active",
+          "type": "BOOLEAN",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": "1"
+        },
+        {
+          "name": "region",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "state",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": "CURRENT_TIMESTAMP"
+        },
+        {
+          "name": "last_interaction",
+          "type": "DATETIME",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null
+        }
+      ],
+      "indexes": [],
+      "foreign_keys": [],
+      "record_count": 3,
+      "purpose": "Usuários cadastrados no WhatsApp"
+    },
+    "whatsapp_sessions": {
+      "name": "whatsapp_sessions",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": true,
+          "default_value": null
+        },
+        {
+          "name": "session_id",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": "'disconnected'"
+        },
+        {
+          "name": "qr_code",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "last_ping",
+          "type": "DATETIME",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": "CURRENT_TIMESTAMP"
+        }
+      ],
+      "indexes": [],
+      "foreign_keys": [],
+      "record_count": 2,
+      "purpose": "Sessões ativas do WhatsApp"
+    },
+    "offers": {
+      "name": "offers",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": true,
+          "default_value": null
+        },
+        {
+          "name": "commodity_id",
+          "type": "INTEGER",
+          "not_null": true,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "offer_type",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "quantity",
+          "type": "REAL",
+          "not_null": true,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "price",
+          "type": "REAL",
+          "not_null": true,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "unit",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "region",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "state",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "contact_phone",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "contact_name",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": "'active'"
+        },
+        {
+          "name": "valid_until",
+          "type": "DATETIME",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": "CURRENT_TIMESTAMP"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_offers_status_valid",
+          "unique": false,
+          "columns": [
+            "status",
+            "valid_until"
+          ]
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "commodity_id",
+          "referenced_table": "commodities",
+          "referenced_column": "id"
+        }
+      ],
+      "record_count": 3,
+      "purpose": "Ofertas de compra/venda de commodities"
+    },
+    "whatsapp_messages": {
+      "name": "whatsapp_messages",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": true,
+          "default_value": null
+        },
+        {
+          "name": "from_number",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "to_number",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "message_type",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": "'text'"
+        },
+        {
+          "name": "content",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": "'pending'"
+        },
+        {
+          "name": "timestamp",
+          "type": "DATETIME",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": "CURRENT_TIMESTAMP"
+        },
+        {
+          "name": "delivered_at",
+          "type": "DATETIME",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "read_at",
+          "type": "DATETIME",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null
+        }
+      ],
+      "indexes": [],
+      "foreign_keys": [],
+      "record_count": 0,
+      "purpose": "Mensagens do WhatsApp (log de comunicação)"
+    },
+    "analytics_metrics": {
+      "name": "analytics_metrics",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": true,
+          "default_value": null
+        },
+        {
+          "name": "metric_type",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "metric_name",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "metric_value",
+          "type": "REAL",
+          "not_null": true,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "metadata",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "timestamp",
+          "type": "DATETIME",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": "CURRENT_TIMESTAMP"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_analytics_metrics_type_timestamp",
+          "unique": false,
+          "columns": [
+            "metric_type",
+            "timestamp"
+          ]
+        }
+      ],
+      "foreign_keys": [],
+      "record_count": 5,
+      "purpose": "Métricas de analytics e monitoramento"
+    },
+    "agentes_status": {
+      "name": "agentes_status",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": true,
+          "default_value": null
+        },
+        {
+          "name": "agent_name",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "last_ping",
+          "type": "DATETIME",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "performance_score",
+          "type": "REAL",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": "0.0"
+        },
+        {
+          "name": "active_sessions",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": "0"
+        },
+        {
+          "name": "metadata",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": "CURRENT_TIMESTAMP"
+        }
+      ],
+      "indexes": [],
+      "foreign_keys": [],
+      "record_count": 4,
+      "purpose": "Status dos agentes do sistema"
+    },
+    "system_config": {
+      "name": "system_config",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "primary_key": true,
+          "default_value": null
+        },
+        {
+          "name": "config_key",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "config_value",
+          "type": "TEXT",
+          "not_null": true,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "config_type",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": "'string'"
+        },
+        {
+          "name": "description",
+          "type": "TEXT",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": null
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "not_null": false,
+          "primary_key": false,
+          "default_value": "CURRENT_TIMESTAMP"
+        }
+      ],
+      "indexes": [],
+      "foreign_keys": [],
+      "record_count": 5,
+      "purpose": "Configurações do sistema"
+    }
+  },
+  "relationships": [
+    {
+      "from_table": "price_history",
+      "from_column": "commodity_id",
+      "to_table": "commodities",
+      "to_column": "id",
+      "type": "foreign_key",
+      "description": "price_history.commodity_id referencia commodities.id"
+    },
+    {
+      "from_table": "offers",
+      "from_column": "commodity_id",
+      "to_table": "commodities",
+      "to_column": "id",
+      "type": "foreign_key",
+      "description": "offers.commodity_id referencia commodities.id"
+    }
+  ],
+  "modules": {
+    "commodities_module": {
+      "name": "Módulo de Commodities",
+      "description": "Gerenciamento de produtos agrícolas e preços",
+      "tables": [
+        "commodities",
+        "price_history",
+        "offers"
+      ],
+      "purpose": "Controle do catálogo de produtos e formação de preços"
+    },
+    "whatsapp_module": {
+      "name": "Módulo WhatsApp",
+      "description": "Comunicação via WhatsApp",
+      "tables": [
+        "whatsapp_users",
+        "whatsapp_messages",
+        "whatsapp_sessions"
+      ],
+      "purpose": "Interface de comunicação com usuários via WhatsApp"
+    },
+    "analytics_module": {
+      "name": "Módulo de Analytics",
+      "description": "Monitoramento e métricas do sistema",
+      "tables": [
+        "analytics_metrics",
+        "agentes_status"
+      ],
+      "purpose": "Observabilidade e performance do sistema"
+    },
+    "system_module": {
+      "name": "Módulo do Sistema",
+      "description": "Configurações e administração",
+      "tables": [
+        "system_config"
+      ],
+      "purpose": "Configurações centrais do sistema"
+    }
+  },
+  "business_rules": [
+    {
+      "rule": "Ofertas têm validade limitada",
+      "evidence": "Campo valid_until na tabela offers",
+      "impact": "Ofertas expiram automaticamente"
+    },
+    {
+      "rule": "Commodities podem estar ativas/inativas",
+      "evidence": "Campo active na tabela commodities",
+      "impact": "Controle de produtos disponíveis para negociação"
+    },
+    {
+      "rule": "Usuários WhatsApp têm preferências de commodities",
+      "evidence": "Campo preferred_commodities na tabela whatsapp_users",
+      "impact": "Personalização de notificações por interesse"
+    },
+    {
+      "rule": "Histórico completo de preços com OHLCV",
+      "evidence": "Campos price_open, price_high, price_low, price_close, volume",
+      "impact": "Análise técnica de preços possível"
+    },
+    {
+      "rule": "Ofertas são regionalizadas",
+      "evidence": "Campos region e state nas tabelas offers e price_history",
+      "impact": "Preços e ofertas variam por região"
+    }
+  ]
+}

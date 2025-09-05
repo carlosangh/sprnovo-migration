@@ -1,0 +1,122 @@
+SPR SERVER 511012728 - MAPEAMENTO DE ROTAS E ENDPOINTS
+====================================================
+
+=== SERVIÇOS ATIVOS POR PORTA ===
+
+PORTA 80 (nginx):
+- Servidor principal HTTP
+- Proxy reverso para serviços internos
+
+PORTA 443 (nginx): 
+- HTTPS com TLS
+- royalnegociosagricolas.com.br
+
+PORTA 3001 (spr-coordinator):
+- Coordenador de serviços SPR
+- Process ID: 2660428
+- Node.js service
+
+PORTA 3002 (spr-backend-production):
+- Backend principal de produção
+- Process ID: 1388455 
+- Python service (141 restarts)
+- SERVIÇO CRÍTICO
+
+PORTA 3004 (spr-ai-commercial):
+- Serviço de IA comercial
+- Process ID: 2660455
+- Node.js service
+
+PORTA 3005 (spr-analytics):
+- Serviços de analytics
+- Process ID: 2660469
+- Node.js service
+
+PORTA 3006 (spr-automation):
+- Automação de processos
+- Process ID: 2660471
+- Node.js service
+
+PORTA 3007 (spr-backend-agent):
+- Agent de backend
+- Process ID: 2660431
+- Node.js service
+
+PORTA 3008 (spr-typescript-pro):
+- Serviço TypeScript Pro
+- Process ID: 2660484
+- Node.js service
+
+PORTA 3010 (spr-real-data):
+- Dados reais em tempo real
+- Process ID: 2660549
+- Python service (2369 restarts)
+- ALTA INSTABILIDADE
+
+PORTA 5432 (spr-postgres):
+- PostgreSQL database
+- Docker container
+
+PORTA 6379 (redis):
+- Redis cache
+- Docker container
+
+PORTA 8002 (clg-core):
+- CLG Core service  
+- Process ID: 2660419
+- Node.js service
+
+PORTA 8041 (datasette):
+- Datasette database browser
+- Process ID: 746
+- Local access only
+
+PORTA 8080 (docker):
+- Docker service
+- Container management
+
+PORTA 8090 (nginx):
+- Nginx secondary port
+- Monitoring/admin interface
+
+=== ANÁLISE DE ROTAS ===
+
+FRONTEND ROUTES (React SPA):
+- / - Dashboard principal
+- /login - Autenticação
+- /market-calls - Chamadas de mercado
+- /sentiment-analysis - Análise de sentimento  
+- /automated-alerts - Alertas automatizados
+- /price-prediction - Predição de preços
+- /system-modules - Módulos do sistema
+- /reports - Relatórios
+
+API ENDPOINTS PRINCIPAIS:
+- /api/auth/* - Autenticação
+- /api/market/* - Dados de mercado
+- /api/whatsapp/* - WhatsApp integration
+- /api/analytics/* - Analytics
+- /api/reports/* - Relatórios
+- /api/health - Health check
+
+=== OBSERVAÇÕES CRÍTICAS ===
+
+1. INSTABILIDADE ALTA:
+   - spr-real-data: 2369 restarts
+   - spr-whatsapp-agent: 605 restarts  
+   - spr-backend-production: 141 restarts
+
+2. SERVIÇOS CRÍTICOS:
+   - Porta 3002 (backend-production) - Backend principal
+   - Porta 3010 (real-data) - Dados em tempo real
+   - Porta 3001 (coordinator) - Coordenação
+
+3. CONFIGURAÇÃO NGINX:
+   - Múltiplas configurações conflitantes
+   - Warnings sobre server names duplicados
+   - SSL configurado para royalnegociosagricolas.com.br
+
+4. INTEGRAÇÃO WHATSAPP:
+   - Serviço instável (605 restarts)
+   - Múltiplas sessões ativas
+   - Evolution API integrada

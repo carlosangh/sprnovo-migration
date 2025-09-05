@@ -1,0 +1,59 @@
+# Exclusões padrão para o projeto SPR (source-only)
+
+# Node/Frontend/Build
+**/node_modules/**
+**/dist/**
+**/build/**
+**/.next/**
+**/.turbo/**
+**/.cache/**
+
+# Minificados e mapas
+**/*.min.*
+**/*.map
+**/*.log
+**/*.tmp
+**/*.zip
+**/*.tar*
+**/*.png
+**/*.jpg
+**/*.jpeg
+**/*.gif
+**/*.svg
+**/*.pdf
+
+# Testes e cobertura
+**/coverage/**
+**/.git/**
+**/.DS_Store
+**/Thumbs.db
+
+# Frontend (EXCLUIR TOTALMENTE)
+**/frontend/**
+**/web/**
+**/client/**
+**/next/**
+**/react/**
+**/vite/**
+**/vue/**
+**/angular/**
+**/public/assets/**
+**/static/js/**
+**/static/css/**
+
+# Mocks e fixtures (EXCLUIR)
+**/__mocks__/**
+**/fixtures/**
+**/msw/**
+**/faker/**
+**/seed-fake*
+**/test-data/**
+**/*.mock.*
+**/*.stub.*
+
+# Builds e binários
+**/*.exe
+**/*.dll
+**/*.so
+**/*.dylib
+**/*.wasm

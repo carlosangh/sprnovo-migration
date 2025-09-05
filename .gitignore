@@ -1,0 +1,96 @@
+# SPR - Gitignore para projeto SPRNOVO (backend/API only)
+
+# Dependencies
+node_modules/
+*.egg-info/
+__pycache__/
+*.pyc
+*.pyo
+venv/
+env/
+
+# Build artifacts
+dist/
+build/
+.next/
+.turbo/
+coverage/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+*.tmp
+
+# Secrets (CRÍTICO - nunca versionar)
+secrets/
+.env*
+!.env.template
+!.env.example
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Database files (produção)
+*.db
+*.sqlite
+*.sqlite3
+!schema.sql
+!migrations/
+
+# Frontend (projeto é backend-only)
+frontend/
+web/
+client/
+static/js/
+static/css/
+public/assets/
+
+# Test and mock files
+__mocks__/
+fixtures/
+test-data/
+*.mock.*
+
+# Archive and binary files
+*.zip
+*.tar*
+*.gz
+*.rar
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Images and media (exceto logos pequenos)
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.svg
+*.pdf
+*.mp4
+*.avi
+
+# Cache
+.cache/
+*.cache
+.parcel-cache/
+
+# PM2
+.pm2/
+pm2.keymetrics.io
+
+# Docker
+Dockerfile.prod
+docker-compose.override.yml

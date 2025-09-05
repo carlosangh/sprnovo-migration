@@ -1,0 +1,55 @@
+# SPR AUTOMATION - INGESTÕES SEM CONTENÇÃO
+# Configuração de crons janelados com flock para SQLite otimizado
+# 
+# IMPORTANTE: Instalar com: crontab -u root /path/to/crontab_spr_ingest
+# ou adicionar ao crontab existente
+
+# Variáveis de ambiente
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+PYTHONPATH=/opt/spr:/opt/spr/app
+MAILTO=admin@spr.local
+HOME=/root
+
+# === CEPEA PREÇOS ===
+# Execuções: 07:05, 12:35, 18:05 com jitter ≤5min
+# Coleta preços 3x por dia em horários de baixa contenção
+05 7 * * * cd /opt/spr && /usr/bin/flock -n /tmp/cepea_master.lock timeout 900 python3 scripts/ingest/cepea_ingester.py --days 2 >> /opt/spr/logs/cepea_cron.log 2>&1
+35 12 * * * cd /opt/spr && /usr/bin/flock -n /tmp/cepea_master.lock timeout 900 python3 scripts/ingest/cepea_ingester.py --days 1 >> /opt/spr/logs/cepea_cron.log 2>&1
+05 18 * * * cd /opt/spr && /usr/bin/flock -n /tmp/cepea_master.lock timeout 900 python3 scripts/ingest/cepea_ingester.py --days 1 >> /opt/spr/logs/cepea_cron.log 2>&1
+
+# === IMEA DADOS ===
+# Execuções: 06:20, 17:20 com jitter ≤5min
+# Coleta semanal em janelas alternadas ao CEPEA
+20 6 * * * cd /opt/spr && /usr/bin/flock -n /tmp/imea_master.lock timeout 1200 python3 scripts/ingest/imea_ingester.py --days 7 >> /opt/spr/logs/imea_cron.log 2>&1
+20 17 * * * cd /opt/spr && /usr/bin/flock -n /tmp/imea_master.lock timeout 1200 python3 scripts/ingest/imea_ingester.py --days 3 >> /opt/spr/logs/imea_cron.log 2>&1
+
+# === CLIMA/INMET ===
+# Execuções: 04:45, 16:45 com jitter ≤5min
+# Dados climáticos 2x por dia em horários de menor carga
+45 4 * * * cd /opt/spr && /usr/bin/flock -n /tmp/clima_master.lock timeout 1800 python3 scripts/ingest/clima_ingester.py --days 3 >> /opt/spr/logs/clima_cron.log 2>&1
+45 16 * * * cd /opt/spr && /usr/bin/flock -n /tmp/clima_master.lock timeout 1800 python3 scripts/ingest/clima_ingester.py --days 2 >> /opt/spr/logs/clima_cron.log 2>&1
+
+# === MANUTENÇÃO E MONITORAMENTO ===
+# Checkpoint WAL manual - executa durante janela de baixa atividade
+00 3 * * * cd /opt/spr && echo "PRAGMA wal_checkpoint(TRUNCATE);" | sqlite3 data/spr_central.db >> /opt/spr/logs/maintenance.log 2>&1
+
+# Smoke test geral - verifica saúde das ingestões
+30 8,14,20 * * * cd /opt/spr && timeout 300 python3 scripts/ingest/smoke_test.py >> /opt/spr/logs/smoke_test.log 2>&1
+
+# Relatório de status - gera métricas diárias
+15 23 * * * cd /opt/spr && python3 scripts/ingest/daily_report.py >> /opt/spr/logs/daily_report.log 2>&1
+
+# Limpeza de logs antigos (>7 dias)
+00 2 * * 0 find /opt/spr/logs -name "*.log" -mtime +7 -delete 2>/dev/null
+
+# Backup automático do banco (semanal)
+00 1 * * 0 cd /opt/spr && cp data/spr_central.db backups/spr_central_$(date +\%Y\%m\%d).db 2>/dev/null
+
+# === MONITORAMENTO DE ESPAÇO ===
+# Alerta se o banco crescer muito (>1GB)
+*/30 * * * * [ $(stat -f --format="\%s" /opt/spr/data/spr_central.db 2>/dev/null || echo 0) -gt 1073741824 ] && echo "WARN: Database size > 1GB" >> /opt/spr/logs/alerts.log
+
+# === RECUPERAÇÃO AUTOMÁTICA ===
+# Reinicializa banco em caso de corrupção (emergência)
+# 00 5 * * * cd /opt/spr && python3 scripts/ingest/recovery_check.py >> /opt/spr/logs/recovery.log 2>&1

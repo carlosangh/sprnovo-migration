@@ -1,0 +1,2 @@
+Git Repositories and Remotes:
+Repository: /home/cadu/spr_versions/spr-mono

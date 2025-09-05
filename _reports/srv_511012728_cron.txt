@@ -1,0 +1,89 @@
+SPR SERVER 511012728 - JOBS AGENDADOS (CRON)
+============================================
+
+=== CRON JOBS DO ROOT ===
+
+# SPR System Monitoring
+*/5 * * * * /opt/spr/monitoring/health_monitor.sh
+0 0 * * * find /opt/spr/monitoring/logs -name "*.log" -mtime +30 -delete
+10 2 * * * /opt/spr/scripts/backup_spr.sh >>/var/log/backup_spr.log 2>&1
+*/5 * * * * /opt/spr/scripts/monitor_spr.sh >>/var/log/monitor_spr.log 2>&1
+
+# CLG Core database backup - daily at 2:30 AM
+30 2 * * * /opt/spr/clg-core/backup-db.sh >> /opt/spr/clg-core/logs/backup.log 2>&1
+
+# SPR DATA INGESTION - REAL DATA ONLY
+# CEPEA - A cada 10 minutos (horário comercial)
+*/10 8-18 * * 1-5 cd /opt/spr && /usr/bin/node cepea-ingest-real.js >> /opt/spr/_logs/market_connectors/cepea.log 2>&1
+
+# IMEA - A cada hora (horário comercial)  
+0 8-18 * * 1-5 cd /opt/spr && /usr/bin/node imea-rondonopolis.js >> /opt/spr/_logs/market_connectors/imea.log 2>&1
+
+# B3 - A cada 15 minutos (pregão)
+*/15 9-18 * * 1-5 cd /opt/spr && /usr/bin/node quotes-ingest-b3.js >> /opt/spr/_logs/market_connectors/b3.log 2>&1
+
+# CME - A cada 30 minutos
+*/30 9-23 * * 1-5 cd /opt/spr && /usr/bin/node quotes-ingest-cme.js >> /opt/spr/_logs/market_connectors/cme.log 2>&1
+
+# News - A cada hora
+0 */1 * * * cd /opt/spr && /usr/bin/node news-ingest.js >> /opt/spr/_logs/market_connectors/news.log 2>&1
+
+# NOAA/USDM - Diário às 3:00 AM
+0 3 * * * cd /opt/spr && /usr/bin/node usdm-drought.js >> /opt/spr/_logs/market_connectors/usdm.log 2>&1
+
+# US Crop Progress - Segundas às 4:00 AM
+0 4 * * 1 cd /opt/spr && /usr/bin/node us-crop-progress.js >> /opt/spr/_logs/market_connectors/crop.log 2>&1
+
+# INMET - A cada 3 horas
+0 */3 * * * cd /opt/spr && /usr/bin/node inmet-ingest.js >> /opt/spr/_logs/market_connectors/inmet.log 2>&1
+
+=== CRON JOBS DO SPRDEV ===
+No cron for sprdev
+
+=== ANÁLISE DOS JOBS ===
+
+MONITORAMENTO:
+- Health monitor: A cada 5 minutos
+- System monitor: A cada 5 minutos
+- Log cleanup: Diariamente à meia-noite (remove logs > 30 dias)
+
+BACKUP:
+- SPR backup: Diariamente às 2:10 AM
+- CLG database backup: Diariamente às 2:30 AM
+
+INGESTÃO DE DADOS (HORÁRIO COMERCIAL):
+- CEPEA: A cada 10 minutos (8h-18h, seg-sex)
+- IMEA: A cada hora (8h-18h, seg-sex)
+- B3: A cada 15 minutos (9h-18h, seg-sex)
+- CME: A cada 30 minutos (9h-23h, seg-sex)
+
+INGESTÃO DE DADOS (PERIODICIDADE DIÁRIA/ESPECÍFICA):
+- News: A cada hora (24/7)
+- USDM/NOAA: Diariamente às 3:00 AM
+- US Crop Progress: Segundas às 4:00 AM  
+- INMET: A cada 3 horas (24/7)
+
+=== OBSERVAÇÕES ===
+
+1. ALTA FREQUÊNCIA DE INGESTÃO:
+   - Sistema coleta dados em tempo quase real durante horário comercial
+   - Múltiplas fontes simultâneas podem causar sobrecarga
+
+2. BACKUP AUTOMÁTICO:
+   - Backup diário do SPR às 2:10 AM
+   - Backup do CLG às 2:30 AM
+   - Logs limpos automaticamente (retenção 30 dias)
+
+3. MONITORAMENTO ATIVO:
+   - Health check a cada 5 minutos
+   - System monitor a cada 5 minutos
+   - Logging detalhado por fonte
+
+4. FONTES DE DADOS ATIVAS:
+   - CEPEA (mercado brasileiro)
+   - IMEA (Mato Grosso)
+   - B3 (bolsa brasileira)
+   - CME (mercado americano)
+   - INMET (meteorologia)
+   - USDM (dados de seca USA)
+   - News feeds (notícias)

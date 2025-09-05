@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Debug SPR - Local</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .warning { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
+        .info { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+        #root {
+            border: 2px dashed #ddd;
+            min-height: 100px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            color: #666;
+        }
+        .test-buttons {
+            margin: 20px 0;
+        }
+        .test-buttons button {
+            margin: 5px;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+        }
+        .test-buttons button:hover {
+            background: #0056b3;
+        }
+        .console-output {
+            background: #000;
+            color: #0f0;
+            font-family: monospace;
+            padding: 10px;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Teste do Sistema de Debug SPR</h1>
+        
+        <div class="status info">
+            <strong>Status:</strong> Página de teste carregada
+        </div>
+
+        <h2>Simulação do Ambiente de Produção</h2>
+        
+        <div class="test-buttons">
+            <button onclick="loadConfig()">1. Carregar Config.js</button>
+            <button onclick="simulateReactLoad()">2. Simular Carregamento React</button>
+            <button onclick="simulateError()">3. Simular Erro JavaScript</button>
+            <button onclick="clearLogs()">4. Limpar Logs</button>
+            <button onclick="exportLogs()">5. Exportar Logs Debug</button>
+        </div>
+
+        <h3>Elemento #root (simulação):</h3>
+        <div id="root">
+            Aguardando React carregar...
+            <br><small>Esta div simula a div#root do seu site</small>
+        </div>
+
+        <h3>Console Simulado:</h3>
+        <div id="console-output" class="console-output">
+            Console inicializado. Carregue o config.js para começar o debug.
+        </div>
+
+        <h3>Informações de Debug:</h3>
+        <div id="debug-info">
+            <div class="status warning">Clique em "Carregar Config.js" para iniciar o sistema de debug</div>
+        </div>
+    </div>
+
+    <script>
+        // Captura console.log original para exibir na página
+        const originalLog = console.log;
+        const originalWarn = console.warn;
+        const originalError = console.error;
+        
+        function addToConsole(message, type = 'log') {
+            const consoleEl = document.getElementById('console-output');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#f00' : type === 'warn' ? '#fa0' : '#0f0';
+            consoleEl.innerHTML += `<div style="color: ${color}">[${timestamp}] ${message}</div>`;
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+        }
+
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addToConsole(args.join(' '), 'log');
+        };
+
+        console.warn = function(...args) {
+            originalWarn.apply(console, args);
+            addToConsole(args.join(' '), 'warn');
+        };
+
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addToConsole(args.join(' '), 'error');
+        };
+
+        function loadConfig() {
+            addToConsole('Carregando config.js...', 'log');
+            
+            // Simula o carregamento do script config.js
+            const script = document.createElement('script');
+            script.src = 'frontend/build/config.js';
+            script.onload = function() {
+                addToConsole('Config.js carregado com sucesso!', 'log');
+                updateDebugInfo();
+            };
+            script.onerror = function() {
+                addToConsole('ERRO: Não foi possível carregar config.js', 'error');
+                updateDebugInfo();
+            };
+            document.head.appendChild(script);
+        }
+
+        function simulateReactLoad() {
+            addToConsole('Simulando carregamento do React...', 'log');
+            
+            // Simula React sendo carregado
+            setTimeout(() => {
+                window.React = { createElement: function() {} };
+                window.ReactDOM = { render: function() {} };
+                addToConsole('React simulado carregado', 'log');
+                
+                // Simula renderização
+                setTimeout(() => {
+                    const root = document.getElementById('root');
+                    root.innerHTML = '<div style="color: green; font-weight: bold;">React App Simulado Carregado!</div>';
+                    addToConsole('Conteúdo renderizado no #root', 'log');
+                }, 1000);
+            }, 500);
+        }
+
+        function simulateError() {
+            addToConsole('Simulando erro JavaScript...', 'warn');
+            try {
+                // Força um erro
+                nonExistentFunction();
+            } catch (e) {
+                console.error('Erro simulado:', e.message);
+            }
+        }
+
+        function clearLogs() {
+            document.getElementById('console-output').innerHTML = 'Console limpo.';
+        }
+
+        function exportLogs() {
+            const logs = sessionStorage.getItem('spr_debug_logs');
+            if (logs) {
+                const blob = new Blob([logs], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'spr-debug-logs.json';
+                a.click();
+                addToConsole('Logs exportados para arquivo JSON', 'log');
+            } else {
+                addToConsole('Nenhum log encontrado no sessionStorage', 'warn');
+            }
+        }
+
+        function updateDebugInfo() {
+            const debugInfo = document.getElementById('debug-info');
+            const hasConfig = typeof window.SPR_CONFIG !== 'undefined';
+            const hasReact = typeof window.React !== 'undefined';
+            const hasDebugPanel = document.getElementById('spr-debug-panel') !== null;
+
+            debugInfo.innerHTML = `
+                <div class="status ${hasConfig ? 'success' : 'error'}">
+                    SPR_CONFIG carregado: ${hasConfig ? 'Sim' : 'Não'}
+                </div>
+                <div class="status ${hasReact ? 'success' : 'warning'}">
+                    React disponível: ${hasReact ? 'Sim' : 'Não'}
+                </div>
+                <div class="status ${hasDebugPanel ? 'success' : 'info'}">
+                    Painel de Debug ativo: ${hasDebugPanel ? 'Sim' : 'Não'}
+                </div>
+            `;
+
+            if (hasConfig) {
+                debugInfo.innerHTML += `
+                    <div class="status info">
+                        <strong>Configuração:</strong><br>
+                        - Debug: ${window.SPR_CONFIG.REACT_APP_DEBUG}<br>
+                        - Log Level: ${window.SPR_CONFIG.REACT_APP_LOG_LEVEL}<br>
+                        - API URL: ${window.SPR_CONFIG.REACT_APP_API_URL}
+                    </div>
+                `;
+            }
+        }
+
+        // Atualiza info inicial
+        updateDebugInfo();
+        
+        addToConsole('Página de teste carregada. Use os botões para testar o sistema de debug.', 'log');
+    </script>
+</body>
+</html>

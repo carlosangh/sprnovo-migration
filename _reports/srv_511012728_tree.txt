@@ -1,0 +1,69 @@
+SPR SERVER 511012728 - ESTRUTURA COMPLETA DE DIRETÓRIOS
+===========================================================
+
+Servidor: SPR-server (Ubuntu 22.04)
+IP: 138.197.83.3
+Droplet ID: 511012728
+Data da Varredura: 2025-09-05
+
+=== INFORMAÇÕES DO DROPLET ===
+Nome: SPR-server
+Memória: 4096 MB
+vCPUs: 2
+Disco: 80 GB
+Região: New York 3 (nyc3)
+Status: active (ativo)
+Uptime: 3 days, 22:35
+
+=== ESTRUTURA PRINCIPAL (/opt/spr) ===
+total 379576
+drwxrwxr-x  52 sprdev www-data     20480 Sep  3 18:29 .
+drwxr-xr-x   7 root   root          4096 Aug 18 07:33 ..
+-rwxrwxr-x   1 sprdev www-data       448 Sep  3 16:47 .env
+-rwxrwxr-x   1 sprdev www-data      2844 Aug 15 09:52 .env.backend.example
+-rwxrwxr-x   1 sprdev www-data      4592 Aug 15 09:53 .env.frontend.example
+-rwxrwxr-x   1 sprdev www-data       333 Aug 25 00:33 .env.jwt
+-rwxrwxr-x   1 sprdev www-data       573 Aug 29 15:12 .env.production
+...
+
+=== WEB ROOT (/var/www/spr) ===
+total 11484
+drwxr-xr-x  5 www-data www-data    4096 Sep  1 19:47 .
+drwxr-xr-x 15 root     root        4096 Sep  4 12:04 ..
+-rwxr-xr-x  1 www-data www-data     369 Sep  4 12:05 asset-manifest.json
+drwxr-xr-x  3 www-data www-data    4096 Aug 29 21:26 assets
+-rwxr-xr-x  1 www-data www-data     639 Aug 29 21:26 config.js
+-rwxr-xr-x  1 www-data www-data 3906362 Aug 29 21:26 favicon-16x16.png
+-rwxr-xr-x  1 www-data www-data 3906362 Aug 29 21:26 favicon-32x32.png
+-rwxr-xr-x  1 www-data www-data 3906362 Aug 29 21:26 favicon.ico
+drwxr-xr-x  2 www-data www-data    4096 Sep  2 00:35 frontend
+-rwxr-xr-x  1 www-data www-data    1410 Sep  4 12:05 index.html
+-rwxr-xr-x  1 www-data www-data     314 Sep  4 12:05 manifest.json
+drwxr-xr-x  4 www-data www-data    4096 Aug 29 21:27 static
+
+=== DIRETÓRIOS PRINCIPAIS IDENTIFICADOS ===
+1. /opt/spr/ - Diretório principal do SPR
+   - Contém código fonte, configurações, logs
+   - Git repository ativo
+   - 52 subdiretórios
+   - Múltiplos arquivos .env para diferentes ambientes
+
+2. /var/www/spr/ - Web root do frontend
+   - Build do React compilado
+   - Assets estáticos
+   - Configurações de produção
+
+3. Diretórios importantes dentro de /opt/spr/:
+   - _logs/ - Logs do sistema e ingestão
+   - data/ - Bancos de dados SQLite
+   - frontend/ - Código fonte do frontend
+   - agents/ - Agentes do sistema
+   - backups/ - Backups automáticos
+   - monitoring/ - Sistema de monitoramento
+   - clg-core/ - Sistema CLG integrado
+
+=== OBSERVAÇÕES ===
+- /home/cadu não existe no servidor (estrutura diferente do desenvolvimento)
+- Sistema usa usuário sprdev como proprietário principal
+- Múltiplos ambientes (.env files) indicam configurações complexas
+- Backup automático ativo com rotinas diárias

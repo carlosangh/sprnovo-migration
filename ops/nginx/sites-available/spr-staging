@@ -1,0 +1,166 @@
+# SPR Staging Site Configuration
+# Staging environment with development features enabled
+
+server {
+    listen 80;
+    server_name staging.DOMAIN_NAME_PLACEHOLDER;
+    
+    # For staging, we can optionally run HTTP only or redirect to HTTPS
+    # Uncomment the following line to redirect to HTTPS:
+    # return 301 https://$server_name$request_uri;
+    
+    # HTTP staging configuration
+    root /opt/spr/frontend/build;
+    index index.html;
+    
+    # Logging with more verbose format for debugging
+    access_log /var/log/nginx/spr-staging-access.log main;
+    error_log /var/log/nginx/spr-staging-error.log debug;
+    
+    # Less restrictive rate limiting for staging
+    limit_conn perip 20;
+    limit_req zone=general burst=50 nodelay;
+    
+    # Frontend - Serve static React build
+    location / {
+        try_files $uri $uri/ /index.html;
+        
+        # Disable caching for staging to see changes immediately
+        add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+        add_header Pragma "no-cache" always;
+        add_header Expires "0" always;
+        
+        # Development headers
+        add_header X-Environment "staging" always;
+        add_header X-Debug "enabled" always;
+    }
+    
+    # API Routes - Proxy to staging backend
+    location /api/ {
+        proxy_pass http://127.0.0.1:3003;  # Staging backend port
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Environment "staging";
+        
+        # Shorter timeouts for faster debugging
+        proxy_connect_timeout 10s;
+        proxy_send_timeout 10s;
+        proxy_read_timeout 30s;
+        
+        # More permissive CORS for staging
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS, PATCH" always;
+        add_header Access-Control-Allow-Headers "Authorization, Content-Type, X-Requested-With, X-Debug" always;
+        add_header Access-Control-Allow-Credentials true always;
+        
+        if ($request_method = 'OPTIONS') {
+            return 204;
+        }
+    }
+    
+    # Analytics Engine Routes (staging)
+    location /api/v1/ {
+        proxy_pass http://127.0.0.1:8001;  # Staging analytics port
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Analytics-Engine "staging-proxy";
+        proxy_set_header X-Environment "staging";
+        
+        # Debug headers for analytics
+        proxy_set_header X-Debug "enabled";
+        proxy_set_header X-Request-ID $request_id;
+        
+        proxy_connect_timeout 10s;
+        proxy_send_timeout 10s;
+        proxy_read_timeout 30s;
+    }
+    
+    # Diagnostics endpoint (open access for staging)
+    location /diag/ {
+        proxy_pass http://127.0.0.1:8001;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Environment "staging";
+        
+        # No access restrictions for staging diagnostics
+    }
+    
+    # Development tools endpoint
+    location /dev/ {
+        proxy_pass http://127.0.0.1:3003;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Environment "staging";
+    }
+    
+    # WebSocket support
+    location /ws/ {
+        proxy_pass http://127.0.0.1:3003;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Environment "staging";
+        
+        proxy_read_timeout 86400s;
+        proxy_send_timeout 86400s;
+    }
+    
+    # Health check
+    location /health {
+        access_log off;
+        return 200 "staging-healthy\n";
+        add_header Content-Type text/plain;
+        add_header X-Environment "staging";
+    }
+    
+    # Staging-specific status page
+    location /status {
+        return 200 '{"environment": "staging", "status": "ok", "timestamp": "$time_iso8601"}';
+        add_header Content-Type application/json;
+    }
+    
+    # Allow all robots for staging (prevent indexing)
+    location = /robots.txt {
+        access_log off;
+        return 200 "User-agent: *\nDisallow: /\n";
+        add_header Content-Type text/plain;
+    }
+}
+
+# Optional HTTPS staging configuration
+server {
+    listen 443 ssl http2;
+    server_name staging.DOMAIN_NAME_PLACEHOLDER;
+    
+    # Self-signed certificate for staging (replace with Let's Encrypt if needed)
+    ssl_certificate /etc/nginx/ssl/staging.crt;
+    ssl_certificate_key /etc/nginx/ssl/staging.key;
+    
+    # Less strict SSL settings for staging
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;
+    
+    # Include the same configuration as HTTP
+    root /opt/spr/frontend/build;
+    index index.html;
+    
+    access_log /var/log/nginx/spr-staging-ssl-access.log main;
+    error_log /var/log/nginx/spr-staging-ssl-error.log debug;
+    
+    # Add staging environment header
+    add_header X-Environment "staging-ssl" always;
+    
+    # Same location blocks as HTTP version above
+    # (In a real deployment, you'd include a common config file)
+}

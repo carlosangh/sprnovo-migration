@@ -1,0 +1,524 @@
+openapi: 3.0.3
+info:
+  title: SPR Authentication API
+  description: |
+    API de autenticação do Sistema Preditivo Royal (SPR).
+    
+    Esta API fornece serviços de autenticação para:
+    - Login de usuários com email/username
+    - Geração e validação de tokens JWT
+    - Gerenciamento de sessões
+    - Endpoints protegidos
+    
+    **Versão:** Emergencial simplificada (1.2.0-emergency)
+    **Porta:** 3002
+    **Segurança:** Token-based authentication com hash SHA256
+    **Usuários válidos:** Configurados em arquivo
+  version: "1.2.0-emergency"
+  contact:
+    name: SPR Team
+    email: carlos@royalnegociosagricolas.com.br
+  license:
+    name: Proprietary
+    url: https://www.royalnegociosagricolas.com.br
+
+servers:
+  - url: http://localhost:3002
+    description: Servidor de desenvolvimento
+  - url: http://0.0.0.0:3002
+    description: Servidor de produção
+  - url: http://161.35.193.215
+    description: DigitalOcean (produção)
+
+paths:
+  # ===================== INFORMAÇÕES GERAIS =====================
+  /:
+    get:
+      summary: Informações da API de autenticação
+      description: |
+        Endpoint raiz que retorna informações sobre a API de autenticação,
+        incluindo versão, status e endpoints disponíveis.
+      tags:
+        - System
+      responses:
+        '200':
+          description: Informações da API
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIInfoResponse'
+              example:
+                message: "🌾 SPR - Sistema Preditivo Royal (Com Autenticação)"
+                version: "1.2.0-emergency"
+                status: "✅ ONLINE"
+                auth_endpoints:
+                  - "POST /api/auth/login"
+                  - "POST /api/auth/refresh"
+                  - "GET /api/auth/me"
+                timestamp: "2024-01-01T12:00:00.000Z"
+
+  /health:
+    get:
+      summary: Health check do serviço de autenticação
+      description: |
+        Verifica se o serviço de autenticação está funcionando corretamente.
+        Inclui informação sobre status de autenticação habilitada.
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Serviço saudável
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                status: "healthy"
+                timestamp: "2024-01-01T12:00:00.000Z"
+                auth: "enabled"
+
+  /api/status:
+    get:
+      summary: Status da API de autenticação
+      description: |
+        Status detalhado da API de autenticação mostrando
+        estado operacional e informações de versão.
+      tags:
+        - System
+      responses:
+        '200':
+          description: Status da API
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIStatusResponse'
+              example:
+                status: "✅ ONLINE"
+                auth: "✅ ENABLED"
+                version: "1.2.0-emergency"
+                timestamp: "2024-01-01T12:00:00.000Z"
+
+  # ===================== AUTENTICAÇÃO =====================
+  /api/auth/login:
+    post:
+      summary: Login de usuário
+      description: |
+        Autentica um usuário usando email ou username e senha.
+        
+        **Credenciais válidas:**
+        - Email: carlos@royalnegociosagricolas.com.br
+        - Username: admin
+        - Senha: Adega001*
+        
+        **Resposta:** Token JWT para autorização em endpoints protegidos.
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            examples:
+              login_with_email:
+                summary: Login com email
+                value:
+                  email: "carlos@royalnegociosagricolas.com.br"
+                  password: "Adega001*"
+              login_with_username:
+                summary: Login com username
+                value:
+                  username: "admin"
+                  password: "Adega001*"
+      responses:
+        '200':
+          description: Login realizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+              example:
+                success: true
+                token: "a1b2c3d4e5f6789012345678901234567890abcdef123456789012345678901234"
+                user:
+                  username: "carlos@royalnegociosagricolas.com.br"
+                  email: "carlos@royalnegociosagricolas.com.br"
+                  roles: ["admin", "user"]
+                expires_at: "2024-01-01T12:00:00.000Z"
+        '400':
+          description: Dados obrigatórios não fornecidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Email/username and password required"
+        '401':
+          description: Credenciais inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Invalid credentials"
+
+  /api/auth/refresh:
+    post:
+      summary: Renovar token de autenticação
+      description: |
+        **Não implementado na versão emergencial.**
+        
+        Este endpoint está planejado para versões futuras e permitirá
+        a renovação de tokens JWT expirados sem necessidade de novo login.
+      tags:
+        - Authentication
+      responses:
+        '200':
+          description: Informação sobre funcionalidade não implementada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotImplementedResponse'
+              example:
+                success: true
+                message: "Token refresh não implementado na versão emergencial"
+
+  /api/auth/me:
+    get:
+      summary: Obter dados do usuário atual
+      description: |
+        **Não implementado na versão emergencial.**
+        
+        Este endpoint está planejado para versões futuras e retornará
+        informações detalhadas sobre o usuário autenticado.
+      tags:
+        - Authentication
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Informação sobre funcionalidade não implementada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotImplementedResponse'
+              example:
+                success: true
+                message: "User info não implementado na versão emergencial"
+
+  # ===================== ENDPOINTS PROTEGIDOS =====================
+  /api/protected/test:
+    get:
+      summary: Endpoint de teste protegido
+      description: |
+        Endpoint de demonstração para testar autenticação.
+        
+        **Versão emergencial:** Não realiza validação real de token,
+        apenas retorna mensagem de sucesso para testes.
+      tags:
+        - Protected
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Acesso autorizado (versão emergencial)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProtectedResponse'
+              example:
+                message: "🔒 Acesso liberado (versão emergencial)"
+                timestamp: "2024-01-01T12:00:00.000Z"
+
+components:
+  schemas:
+    # ===================== REQUEST SCHEMAS =====================
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          description: Email do usuário (alternativa ao username)
+          example: "carlos@royalnegociosagricolas.com.br"
+        username:
+          type: string
+          description: Username do usuário (alternativa ao email)
+          example: "admin"
+        password:
+          type: string
+          description: Senha do usuário
+          example: "Adega001*"
+      required:
+        - password
+      anyOf:
+        - required: [email]
+        - required: [username]
+      additionalProperties: false
+
+    # ===================== RESPONSE SCHEMAS =====================
+    APIInfoResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "🌾 SPR - Sistema Preditivo Royal (Com Autenticação)"
+        version:
+          type: string
+          example: "1.2.0-emergency"
+        status:
+          type: string
+          example: "✅ ONLINE"
+        auth_endpoints:
+          type: array
+          items:
+            type: string
+          example:
+            - "POST /api/auth/login"
+            - "POST /api/auth/refresh"
+            - "GET /api/auth/me"
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - message
+        - version
+        - status
+        - timestamp
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy]
+          example: "healthy"
+        timestamp:
+          type: string
+          format: date-time
+        auth:
+          type: string
+          enum: [enabled, disabled]
+          example: "enabled"
+      required:
+        - status
+        - timestamp
+        - auth
+
+    APIStatusResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "✅ ONLINE"
+        auth:
+          type: string
+          example: "✅ ENABLED"
+        version:
+          type: string
+          example: "1.2.0-emergency"
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - status
+        - auth
+        - version
+        - timestamp
+
+    LoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        token:
+          type: string
+          description: |
+            Token de autenticação gerado usando SHA256.
+            Formato: hash(identifier:timestamp:secret)
+          example: "a1b2c3d4e5f6789012345678901234567890abcdef123456789012345678901234"
+        user:
+          type: object
+          properties:
+            username:
+              type: string
+              description: Identificador do usuário
+            email:
+              type: string
+              format: email
+              description: Email do usuário
+            roles:
+              type: array
+              items:
+                type: string
+                enum: [admin, user]
+              description: Roles do usuário
+              example: ["admin", "user"]
+          required:
+            - username
+            - email
+            - roles
+        expires_at:
+          type: string
+          format: date-time
+          description: Data de expiração do token (informativa)
+      required:
+        - success
+        - token
+        - user
+        - expires_at
+
+    NotImplementedResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          description: Mensagem informando sobre funcionalidade não implementada
+          example: "Token refresh não implementado na versão emergencial"
+      required:
+        - success
+        - message
+
+    ProtectedResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "🔒 Acesso liberado (versão emergencial)"
+        timestamp:
+          type: string
+          format: date-time
+        user_info:
+          type: object
+          description: Informações do usuário (quando disponível)
+          properties:
+            username:
+              type: string
+            authenticated:
+              type: boolean
+      required:
+        - message
+        - timestamp
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Mensagem de erro
+          example: "Invalid credentials"
+        details:
+          type: string
+          description: Detalhes adicionais do erro
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - error
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: |
+        Token de autenticação obtido através do endpoint de login.
+        
+        **Formato:** SHA256 hash do formato: `identifier:timestamp:secret`
+        
+        **Header:** `Authorization: Bearer <token>`
+        
+        **Nota:** Na versão emergencial, a validação de tokens é simplificada.
+
+  parameters:
+    AuthorizationHeader:
+      name: Authorization
+      in: header
+      required: true
+      schema:
+        type: string
+        pattern: '^Bearer [a-zA-Z0-9]{64}$'
+      description: Token de autorização no formato Bearer
+      example: "Bearer a1b2c3d4e5f6789012345678901234567890abcdef123456789012345678901234"
+
+  responses:
+    UnauthorizedError:
+      description: Token de autorização necessário ou inválido
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: "Token de autorização necessário"
+            timestamp: "2024-01-01T12:00:00.000Z"
+
+    ForbiddenError:
+      description: Acesso negado - permissões insuficientes
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: "Acesso negado"
+            timestamp: "2024-01-01T12:00:00.000Z"
+
+tags:
+  - name: System
+    description: Informações do sistema e status da API
+  - name: Health
+    description: Health checks e monitoramento
+  - name: Authentication
+    description: Endpoints de autenticação e gerenciamento de tokens
+  - name: Protected
+    description: Endpoints que requerem autenticação
+
+# ===================== CONFIGURAÇÃO DE SEGURANÇA =====================
+security:
+  - BearerAuth: []
+
+# ===================== INFORMAÇÕES ADICIONAIS =====================
+x-auth-config:
+  version: "emergency"
+  token_type: "sha256_hash"
+  secret: "emergency-token-2025"
+  valid_users:
+    - email: "carlos@royalnegociosagricolas.com.br"
+      password: "Adega001*"
+      roles: ["admin", "user"]
+    - username: "admin"
+      password: "Adega001*"
+      roles: ["admin", "user"]
+
+x-cors-config:
+  allowed_origins:
+    - "http://localhost:3000"
+    - "http://127.0.0.1:3000" 
+    - "http://161.35.193.215"
+  allow_credentials: true
+  allowed_methods: ["*"]
+  allowed_headers: ["*"]
+
+x-deployment-notes: |
+  Limitações da versão emergencial:
+  1. Sistema de autenticação simplificado
+  2. Usuários hardcoded no código
+  3. Token refresh não implementado
+  4. Validação de token simplificada
+  5. Não há persistência de sessões
+  
+  Melhorias para versão completa:
+  1. Integração com banco de dados de usuários
+  2. Sistema completo de JWT com refresh tokens
+  3. Validação robusta de tokens
+  4. Rate limiting por usuário
+  5. Logs de auditoria de autenticação
+  6. Recuperação de senha
+  7. Gerenciamento de perfis de usuário
+  8. Autenticação em dois fatores
+
+externalDocs:
+  description: FastAPI Security Documentation
+  url: https://fastapi.tiangolo.com/tutorial/security/

@@ -1,0 +1,556 @@
+openapi: 3.0.3
+info:
+  title: SPR WhatsApp API
+  description: |
+    API de integração com WhatsApp para o Sistema Preditivo Royal (SPR).
+    
+    Esta API fornece endpoints para:
+    - Geração de QR Code para autenticação WhatsApp
+    - Gerenciamento de sessões WPPConnect
+    - Proxy para serviços WPPConnect
+    - Monitoramento de status das conexões
+    
+    **Integração:** WPPConnect (porta 3003)
+    **Frontend:** Interface HTML para QR Code
+    **Segurança:** Secret key para autenticação
+  version: "1.0.0"
+  contact:
+    name: SPR Team
+    email: carlos@royalnegociosagricolas.com.br
+  license:
+    name: Proprietary
+    url: https://www.royalnegociosagricolas.com.br
+
+servers:
+  - url: http://localhost:3002
+    description: Servidor principal (Node.js)
+  - url: http://localhost:3003/api
+    description: Servidor WPPConnect (upstream)
+  - url: https://www.royalnegociosagricolas.com.br
+    description: Servidor de produção
+
+paths:
+  # ===================== WEB INTERFACE =====================
+  /whatsapp-qr:
+    get:
+      summary: Página HTML do QR Code
+      description: |
+        Serve a interface web para exibição e gerenciamento do QR Code do WhatsApp.
+        Inclui funcionalidades de:
+        - Geração de token
+        - Início de sessão
+        - Exibição do QR Code
+        - Verificação de status de conexão
+      tags:
+        - Interface
+      responses:
+        '200':
+          description: Página HTML do QR Code
+          content:
+            text/html:
+              schema:
+                type: string
+                example: |
+                  <!DOCTYPE html>
+                  <html>
+                    <head><title>WhatsApp QR Code</title></head>
+                    <body>
+                      <h1>Royal Negócios Agrícolas - WhatsApp</h1>
+                      <div id="qr-container">...</div>
+                    </body>
+                  </html>
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ===================== TOKEN MANAGEMENT =====================
+  /api/whatsapp/{session}/{secretkey}/generate-token:
+    post:
+      summary: Gerar token de autenticação
+      description: |
+        Proxy para o endpoint de geração de token do WPPConnect.
+        Requer secret key válida para autenticação.
+      tags:
+        - Authentication
+      parameters:
+        - name: session
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Nome da sessão WhatsApp
+          example: "royal-session"
+        - name: secretkey
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Chave secreta para autenticação
+          example: "SPR_ROYAL_NEGOCIOS_SECURE_TOKEN_2025"
+      responses:
+        '200':
+          description: Token gerado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+              example:
+                success: true
+                token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                expires: "2024-01-02T00:00:00.000Z"
+        '401':
+          description: Secret key inválida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                error: "Secret key inválida"
+        '500':
+          description: Erro de comunicação com WPPConnect
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ===================== SESSION MANAGEMENT =====================
+  /api/whatsapp/{session}/start-session:
+    post:
+      summary: Iniciar sessão WhatsApp
+      description: |
+        Inicia uma nova sessão do WhatsApp usando o WPPConnect.
+        Requer token de autorização válido.
+      tags:
+        - Session
+      parameters:
+        - name: session
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Nome da sessão WhatsApp
+          example: "royal-session"
+      security:
+        - BearerAuth: []
+      requestBody:
+        description: Configurações da sessão (opcional)
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartSessionRequest'
+      responses:
+        '200':
+          description: Sessão iniciada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+              example:
+                success: true
+                session: "royal-session"
+                status: "initializing"
+                qrCode: true
+                message: "Sessão iniciada. Escaneie o QR Code."
+        '401':
+          description: Token de autorização necessário
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Erro ao iniciar sessão
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/whatsapp/{session}/check-connection-session:
+    get:
+      summary: Verificar status da sessão
+      description: |
+        Verifica o status da conexão da sessão WhatsApp.
+        Retorna informações sobre o estado da conexão.
+      tags:
+        - Session
+      parameters:
+        - name: session
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Nome da sessão WhatsApp
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Status da sessão obtido com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionStatusResponse'
+              examples:
+                connected:
+                  summary: Sessão conectada
+                  value:
+                    success: true
+                    session: "royal-session"
+                    status: "connected"
+                    phone: "+5511999999999"
+                    connected: true
+                qrcode:
+                  summary: Aguardando QR Code
+                  value:
+                    success: true
+                    session: "royal-session"
+                    status: "qrcode"
+                    connected: false
+                    message: "Escaneie o QR Code para conectar"
+        '401':
+          description: Token de autorização necessário
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Erro ao verificar conexão
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ===================== QR CODE =====================
+  /api/whatsapp/{session}/qrcode-session:
+    get:
+      summary: Obter QR Code como imagem
+      description: |
+        Retorna o QR Code da sessão como uma imagem PNG.
+        Para ser escaneado pelo WhatsApp mobile.
+      tags:
+        - QR Code
+      parameters:
+        - name: session
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Nome da sessão WhatsApp
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: QR Code em formato PNG
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+        '401':
+          description: Token de autorização necessário
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Erro ao obter QR Code
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ===================== STATUS & MONITORING =====================
+  /api/whatsapp/status:
+    get:
+      summary: Status geral do serviço WhatsApp
+      description: |
+        Verifica se o serviço WhatsApp e o WPPConnect estão disponíveis.
+        Útil para monitoramento da infraestrutura.
+      tags:
+        - Monitoring
+      responses:
+        '200':
+          description: Status do serviço
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceStatusResponse'
+              examples:
+                available:
+                  summary: Serviço disponível
+                  value:
+                    success: true
+                    status: "connected"
+                    wppconnect_available: true
+                    wppconnect_status: "running"
+                    message: "WhatsApp service disponível"
+                    timestamp: "2024-01-01T12:00:00.000Z"
+                unavailable:
+                  summary: Serviço indisponível
+                  value:
+                    success: false
+                    status: "disconnected"
+                    wppconnect_available: false
+                    wppconnect_status: "down"
+                    message: "WPPConnect não disponível ou não configurado"
+                    error: "ECONNREFUSED"
+                    timestamp: "2024-01-01T12:00:00.000Z"
+
+  /api/whatsapp/health:
+    get:
+      summary: Health check do serviço WhatsApp
+      description: |
+        Health check específico para o serviço WhatsApp.
+        Retorna status HTTP apropriado para load balancers.
+      tags:
+        - Monitoring
+      responses:
+        '200':
+          description: Serviço saudável
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                success: true
+                wppconnect_status: "running"
+                wppconnect_response: true
+                timestamp: "2024-01-01T12:00:00.000Z"
+        '503':
+          description: Serviço indisponível
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                success: false
+                wppconnect_status: "down"
+                error: "WPPConnect não disponível"
+                timestamp: "2024-01-01T12:00:00.000Z"
+
+components:
+  schemas:
+    # ===================== REQUEST SCHEMAS =====================
+    StartSessionRequest:
+      type: object
+      properties:
+        webhook:
+          type: string
+          format: uri
+          description: URL do webhook para notificações
+          example: "https://www.royalnegociosagricolas.com.br/webhook/whatsapp"
+        waitQrCode:
+          type: boolean
+          description: Se deve aguardar o QR Code
+          default: true
+        logQr:
+          type: boolean
+          description: Se deve logar o QR Code no console
+          default: false
+        disableSpins:
+          type: boolean
+          description: Desabilitar indicadores de loading
+          default: true
+        disableWelcome:
+          type: boolean
+          description: Desabilitar mensagem de boas-vindas
+          default: true
+
+    # ===================== RESPONSE SCHEMAS =====================
+    TokenResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        token:
+          type: string
+          description: Token JWT para autenticação
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        expires:
+          type: string
+          format: date-time
+          description: Data de expiração do token
+
+    SessionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        session:
+          type: string
+          description: Nome da sessão
+        status:
+          type: string
+          enum: [initializing, qrcode, connected, disconnected]
+          description: Status da sessão
+        qrCode:
+          type: boolean
+          description: Se QR Code está disponível
+        message:
+          type: string
+          description: Mensagem informativa
+
+    ConnectionStatusResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        session:
+          type: string
+          description: Nome da sessão
+        status:
+          type: string
+          enum: [connected, qrcode, disconnected, error]
+          description: Status da conexão
+        connected:
+          type: boolean
+          description: Se está conectado
+        phone:
+          type: string
+          description: Número de telefone conectado (se conectado)
+          example: "+5511999999999"
+        message:
+          type: string
+          description: Mensagem de status
+
+    ServiceStatusResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Se o serviço está funcionando
+        status:
+          type: string
+          enum: [connected, disconnected]
+          description: Status da conexão
+        wppconnect_available:
+          type: boolean
+          description: Se WPPConnect está disponível
+        wppconnect_status:
+          type: string
+          enum: [running, down]
+          description: Status do WPPConnect
+        message:
+          type: string
+          description: Mensagem descritiva
+        error:
+          type: string
+          description: Detalhes do erro (se houver)
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp da verificação
+
+    HealthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Status de saúde
+        wppconnect_status:
+          type: string
+          enum: [running, down]
+          description: Status do WPPConnect
+        wppconnect_response:
+          type: boolean
+          description: Se WPPConnect está respondendo
+        error:
+          type: string
+          description: Detalhes do erro
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp da verificação
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          description: Mensagem de erro
+        details:
+          type: string
+          description: Detalhes adicionais do erro
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp do erro
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        Token JWT obtido através do endpoint de geração de token.
+        Deve ser incluído no header Authorization: Bearer <token>
+
+  parameters:
+    SessionParam:
+      name: session
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^[a-zA-Z0-9_-]+$'
+        minLength: 1
+        maxLength: 50
+      description: |
+        Nome da sessão WhatsApp. Deve conter apenas letras, números,
+        hífens e underscores. Máximo 50 caracteres.
+      example: "royal-session"
+
+    SecretKeyParam:
+      name: secretkey
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 10
+      description: |
+        Chave secreta para autenticação. Deve ser mantida em segurança
+        e não deve ser exposta em logs ou documentação pública.
+
+tags:
+  - name: Interface
+    description: Interface web para gerenciamento do WhatsApp
+  - name: Authentication
+    description: Endpoints de autenticação e geração de tokens
+  - name: Session
+    description: Gerenciamento de sessões WhatsApp
+  - name: QR Code
+    description: Geração e obtenção de QR Codes
+  - name: Monitoring
+    description: Monitoramento e status do serviço
+
+externalDocs:
+  description: WPPConnect Documentation
+  url: https://wppconnect.io/
+
+# ===================== CONFIGURAÇÃO DE SEGURANÇA =====================
+security:
+  - BearerAuth: []
+
+# ===================== INFORMAÇÕES ADICIONAIS =====================
+x-wppconnect-config:
+  base_url: "http://localhost:3003/api"
+  secret_key: "SPR_ROYAL_NEGOCIOS_SECURE_TOKEN_2025"
+  timeout:
+    token_generation: 10000
+    session_start: 30000
+    status_check: 10000
+    qrcode: 10000
+
+x-deployment-notes: |
+  Configuração necessária para produção:
+  1. Configurar WPPCONNECT_URL para o servidor correto
+  2. Alterar WPPCONNECT_SECRET para um valor seguro
+  3. Configurar CORS adequadamente
+  4. Implementar rate limiting para endpoints públicos
+  5. Configurar logs de auditoria para operações sensíveis

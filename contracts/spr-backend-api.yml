@@ -1,0 +1,727 @@
+openapi: 3.0.3
+info:
+  title: SPR Backend API
+  description: |
+    API principal do Sistema Preditivo Royal (SPR) para análise de commodities agrícolas.
+    
+    Este é o backend principal desenvolvido em Node.js/TypeScript que serve dados de:
+    - Notícias agrícolas
+    - Relatórios WASDE
+    - Progresso de culturas (USDA)
+    - Dados CFTC COT
+    - Informações de seca
+    - Dados de etanol (EIA)
+    - Status de serviços
+    
+    **Portas:** 3001, 3002
+    **Ambiente:** TypeScript-PRO com padrões enterprise
+  version: "1.3.0"
+  contact:
+    name: SPR Team
+    email: carlos@royalnegociosagricolas.com.br
+  license:
+    name: Proprietary
+    url: https://www.royalnegociosagricolas.com.br
+
+servers:
+  - url: http://localhost:3002
+    description: Servidor de desenvolvimento
+  - url: http://localhost:3001
+    description: Servidor de produção alternativo
+  - url: https://www.royalnegociosagricolas.com.br
+    description: Servidor de produção
+
+paths:
+  # ===================== HEALTH CHECKS =====================
+  /health:
+    get:
+      summary: Health check completo do sistema
+      description: |
+        Retorna informações detalhadas sobre o status do sistema, incluindo:
+        - Status geral (ok, degraded, error)
+        - Métricas de sistema (memória, CPU, processo)
+        - Status dos serviços dependentes
+        - Informações de uptime e versão
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Sistema saudável ou com degradação
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthCheckResponse'
+              examples:
+                healthy:
+                  summary: Sistema saudável
+                  value:
+                    status: "ok"
+                    timestamp: 1704067200000
+                    uptime: 3600
+                    version: "1.3.0"
+                    environment: "production"
+                    system:
+                      memory:
+                        used: 52428800
+                        free: 12582912
+                        total: 65011712
+                      cpu:
+                        usage: 15
+                        loadAverage: [0.2, 0.15, 0.12]
+                      process:
+                        pid: 1234
+                        nodeVersion: "v18.17.0"
+                        platform: "linux"
+                    services:
+                      - name: "database"
+                        status: "healthy"
+                        lastCheck: 1704067200000
+                        responseTime: 15
+                      - name: "external-apis"
+                        status: "healthy"
+                        lastCheck: 1704067200000
+                        responseTime: 120
+        '503':
+          description: Sistema com falhas críticas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthCheckResponse'
+
+  /health/simple:
+    get:
+      summary: Health check simples para load balancers
+      description: Endpoint minimalista para verificações rápidas de disponibilidade
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Serviço disponível
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "ok"
+                  timestamp:
+                    type: integer
+                    format: int64
+                    example: 1704067200000
+
+  /ready:
+    get:
+      summary: Readiness probe para Kubernetes
+      description: Indica se o serviço está pronto para receber tráfego
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Serviço pronto
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimpleStatusResponse'
+
+  /live:
+    get:
+      summary: Liveness probe para Kubernetes
+      description: Indica se o serviço está vivo e funcionando
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Serviço vivo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimpleStatusResponse'
+
+  # ===================== API ROOT =====================
+  /api:
+    get:
+      summary: Informações básicas da API
+      description: Endpoint raiz da API com informações de conectividade e versão
+      tags:
+        - System
+      responses:
+        '200':
+          description: Informações da API
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthCheckResponse'
+
+  # ===================== NEWS ENDPOINTS =====================
+  /api/news/latest:
+    get:
+      summary: Últimas notícias agrícolas
+      description: |
+        Retorna as notícias mais recentes do setor agrícola.
+        Inclui artigos, resumos e fontes.
+      tags:
+        - News
+      responses:
+        '200':
+          description: Notícias obtidas com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewsLatestResponse'
+              example:
+                ok: true
+                endpoint: "/news/latest"
+                service: "news"
+                data:
+                  articles:
+                    - id: "news_001"
+                      title: "Safra de soja 2024/25 apresenta crescimento de 8%"
+                      summary: "Levantamento mostra expansão na área plantada e melhoria nas condições climáticas"
+                      publishedAt: "2024-01-01T12:00:00.000Z"
+                      source: "Agricultural Times"
+                  total: 1
+
+  # ===================== REPORTS ENDPOINTS =====================
+  /api/reports/wasde/latest:
+    get:
+      summary: Último relatório WASDE
+      description: |
+        World Agricultural Supply and Demand Estimates - relatório mensal do USDA
+        com estimativas de oferta e demanda mundial de commodities agrícolas.
+      tags:
+        - Reports
+      responses:
+        '200':
+          description: Relatório WASDE obtido com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WasdeReportResponse'
+              example:
+                ok: true
+                endpoint: "/reports/wasde/latest"
+                service: "reports"
+                data:
+                  reportDate: "2024-01-01T12:00:00.000Z"
+                  crops:
+                    - name: "Corn"
+                      production: 14200
+                      consumption: 14100
+                      exports: 2400
+                      endingStocks: 1200
+                    - name: "Soybeans"
+                      production: 4500
+                      consumption: 4300
+                      exports: 2000
+                      endingStocks: 280
+
+  # ===================== US CROP DATA =====================
+  /api/us/crop-progress:
+    get:
+      summary: Progresso das culturas nos EUA
+      description: |
+        Dados semanais do USDA sobre o progresso das principais culturas americanas,
+        incluindo percentual plantado, emergido e condições das lavouras.
+      tags:
+        - USDA
+      responses:
+        '200':
+          description: Dados de progresso obtidos com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CropProgressResponse'
+
+  /api/us/drought/latest:
+    get:
+      summary: Dados de seca nos EUA
+      description: |
+        Informações atualizadas sobre condições de seca por estado,
+        categorizadas por intensidade (D0-D4).
+      tags:
+        - USDA
+      responses:
+        '200':
+          description: Dados de seca obtidos com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DroughtResponse'
+
+  # ===================== CFTC DATA =====================
+  /api/cftc/cot:
+    get:
+      summary: Relatório COT (Commitment of Traders)
+      description: |
+        Compromissos dos traders da CFTC mostrando posicionamento
+        de comerciais e não-comerciais em commodities agrícolas.
+      tags:
+        - CFTC
+      responses:
+        '200':
+          description: Dados COT obtidos com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CftcCotResponse'
+
+  # ===================== EIA DATA =====================
+  /api/eia/ethanol/latest:
+    get:
+      summary: Dados de etanol da EIA
+      description: |
+        Informações semanais da Energy Information Administration
+        sobre produção, estoques, importações e exportações de etanol.
+      tags:
+        - EIA
+      responses:
+        '200':
+          description: Dados de etanol obtidos com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EthanolResponse'
+
+  # ===================== INTEL STATUS =====================
+  /api/intel/status:
+    get:
+      summary: Status dos serviços de inteligência
+      description: |
+        Status operacional dos serviços de coleta de dados,
+        análise e geração de relatórios.
+      tags:
+        - Intel
+      responses:
+        '200':
+          description: Status dos serviços obtido com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntelStatusResponse'
+
+components:
+  schemas:
+    # ===================== HEALTH SCHEMAS =====================
+    HealthCheckResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [ok, degraded, error]
+          description: Status geral do sistema
+        timestamp:
+          type: integer
+          format: int64
+          description: Timestamp em milissegundos
+        uptime:
+          type: integer
+          description: Uptime do servidor em segundos
+        version:
+          type: string
+          description: Versão da aplicação
+          example: "1.3.0"
+        environment:
+          type: string
+          enum: [development, staging, production]
+          description: Ambiente de execução
+        system:
+          $ref: '#/components/schemas/SystemMetrics'
+        services:
+          type: array
+          items:
+            $ref: '#/components/schemas/ServiceStatus'
+
+    SystemMetrics:
+      type: object
+      properties:
+        memory:
+          type: object
+          properties:
+            used:
+              type: integer
+              description: Memória usada em bytes
+            free:
+              type: integer
+              description: Memória livre em bytes
+            total:
+              type: integer
+              description: Memória total em bytes
+        cpu:
+          type: object
+          properties:
+            usage:
+              type: integer
+              description: Uso de CPU em percentual
+              minimum: 0
+              maximum: 100
+            loadAverage:
+              type: array
+              items:
+                type: number
+                format: float
+              description: Load average do sistema
+        process:
+          type: object
+          properties:
+            pid:
+              type: integer
+              description: ID do processo
+            nodeVersion:
+              type: string
+              description: Versão do Node.js
+            platform:
+              type: string
+              description: Plataforma do sistema
+
+    ServiceStatus:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Nome do serviço
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+          description: Status do serviço
+        lastCheck:
+          type: integer
+          format: int64
+          description: Timestamp da última verificação
+        responseTime:
+          type: integer
+          description: Tempo de resposta em milissegundos
+
+    SimpleStatusResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "ok"
+        timestamp:
+          type: integer
+          format: int64
+
+    # ===================== NEWS SCHEMAS =====================
+    NewsLatestResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+          example: true
+        endpoint:
+          type: string
+          example: "/news/latest"
+        service:
+          type: string
+          example: "news"
+        data:
+          type: object
+          properties:
+            articles:
+              type: array
+              items:
+                $ref: '#/components/schemas/NewsArticle'
+            total:
+              type: integer
+              description: Total de artigos
+
+    NewsArticle:
+      type: object
+      properties:
+        id:
+          type: string
+          description: ID único do artigo
+        title:
+          type: string
+          description: Título do artigo
+        summary:
+          type: string
+          description: Resumo do artigo
+        publishedAt:
+          type: string
+          format: date-time
+          description: Data de publicação
+        source:
+          type: string
+          description: Fonte do artigo
+
+    # ===================== WASDE SCHEMAS =====================
+    WasdeReportResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+        endpoint:
+          type: string
+        service:
+          type: string
+        data:
+          type: object
+          properties:
+            reportDate:
+              type: string
+              format: date-time
+            crops:
+              type: array
+              items:
+                $ref: '#/components/schemas/WasdeCrop'
+
+    WasdeCrop:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Nome da commodity
+        production:
+          type: number
+          description: Produção em milhões de bushels/toneladas
+        consumption:
+          type: number
+          description: Consumo em milhões de bushels/toneladas
+        exports:
+          type: number
+          description: Exportações em milhões de bushels/toneladas
+        endingStocks:
+          type: number
+          description: Estoques finais em milhões de bushels/toneladas
+
+    # ===================== CROP PROGRESS SCHEMAS =====================
+    CropProgressResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+        endpoint:
+          type: string
+        service:
+          type: string
+        data:
+          type: object
+          properties:
+            reportWeek:
+              type: string
+              format: date-time
+            crops:
+              type: array
+              items:
+                $ref: '#/components/schemas/CropProgress'
+
+    CropProgress:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Nome da cultura
+        planted:
+          type: number
+          minimum: 0
+          maximum: 100
+          description: Percentual plantado
+        emerged:
+          type: number
+          minimum: 0
+          maximum: 100
+          description: Percentual emergido
+        condition:
+          $ref: '#/components/schemas/CropCondition'
+
+    CropCondition:
+      type: object
+      properties:
+        excellent:
+          type: number
+          minimum: 0
+          maximum: 100
+          description: Percentual em condição excelente
+        good:
+          type: number
+          minimum: 0
+          maximum: 100
+          description: Percentual em condição boa
+        fair:
+          type: number
+          minimum: 0
+          maximum: 100
+          description: Percentual em condição regular
+        poor:
+          type: number
+          minimum: 0
+          maximum: 100
+          description: Percentual em condição ruim
+        veryPoor:
+          type: number
+          minimum: 0
+          maximum: 100
+          description: Percentual em condição muito ruim
+
+    # ===================== DROUGHT SCHEMAS =====================
+    DroughtResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+        endpoint:
+          type: string
+        service:
+          type: string
+        data:
+          type: object
+          properties:
+            reportDate:
+              type: string
+              format: date-time
+            regions:
+              type: array
+              items:
+                $ref: '#/components/schemas/DroughtRegion'
+
+    DroughtRegion:
+      type: object
+      properties:
+        state:
+          type: string
+          description: Nome do estado
+        d0:
+          type: number
+          description: Percentual em seca anormal (D0)
+        d1:
+          type: number
+          description: Percentual em seca moderada (D1)
+        d2:
+          type: number
+          description: Percentual em seca severa (D2)
+        d3:
+          type: number
+          description: Percentual em seca extrema (D3)
+        d4:
+          type: number
+          description: Percentual em seca excepcional (D4)
+
+    # ===================== CFTC SCHEMAS =====================
+    CftcCotResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+        endpoint:
+          type: string
+        service:
+          type: string
+        data:
+          type: object
+          properties:
+            reportDate:
+              type: string
+              format: date-time
+            commodities:
+              type: array
+              items:
+                $ref: '#/components/schemas/CftcCommodity'
+
+    CftcCommodity:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Nome da commodity
+        commercialLong:
+          type: integer
+          description: Posições long comerciais
+        commercialShort:
+          type: integer
+          description: Posições short comerciais
+        nonCommercialLong:
+          type: integer
+          description: Posições long não-comerciais
+        nonCommercialShort:
+          type: integer
+          description: Posições short não-comerciais
+
+    # ===================== ETHANOL SCHEMAS =====================
+    EthanolResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+        endpoint:
+          type: string
+        service:
+          type: string
+        data:
+          type: object
+          properties:
+            reportDate:
+              type: string
+              format: date-time
+            production:
+              type: number
+              description: Produção semanal em mil barris/dia
+            stocks:
+              type: number
+              description: Estoques em mil barris
+            imports:
+              type: number
+              description: Importações em mil barris/dia
+            exports:
+              type: number
+              description: Exportações em mil barris/dia
+
+    # ===================== INTEL SCHEMAS =====================
+    IntelStatusResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+        endpoint:
+          type: string
+        service:
+          type: string
+        status:
+          type: object
+          properties:
+            operational:
+              type: boolean
+              description: Se os serviços estão operacionais
+            lastUpdate:
+              type: string
+              format: date-time
+            services:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  status:
+                    type: string
+                    enum: [online, offline, degraded]
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Token de autenticação JWT
+
+tags:
+  - name: Health
+    description: Endpoints de monitoramento e saúde do sistema
+  - name: System
+    description: Informações do sistema e API
+  - name: News
+    description: Notícias agrícolas
+  - name: Reports
+    description: Relatórios do USDA (WASDE)
+  - name: USDA
+    description: Dados do United States Department of Agriculture
+  - name: CFTC
+    description: Dados da Commodity Futures Trading Commission
+  - name: EIA
+    description: Dados da Energy Information Administration
+  - name: Intel
+    description: Serviços de inteligência e análise
+
+externalDocs:
+  description: Royal Negócios Agrícolas
+  url: https://www.royalnegociosagricolas.com.br

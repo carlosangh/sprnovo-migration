@@ -1,0 +1,827 @@
+openapi: 3.0.3
+info:
+  title: SPR Python Services API
+  description: |
+    APIs dos serviços Python do Sistema Preditivo Royal (SPR).
+    
+    Esta especificação documenta os serviços Python que fornecem:
+    - API FastAPI principal (porta 3002)
+    - Serviços de OCR e processamento de documentos
+    - Bridge Claude-Pulso para IA (porta 8000)
+    - Processamento de análise inteligente
+    - Métricas e status dos serviços
+    
+    **Stack:** FastAPI, Python 3.8+, CORS habilitado
+    **Integração:** Claude AI, OCR, análise de commodities
+  version: "1.2.0"
+  contact:
+    name: SPR Team
+    email: carlos@royalnegociosagricolas.com.br
+  license:
+    name: Proprietary
+    url: https://www.royalnegociosagricolas.com.br
+
+servers:
+  - url: http://localhost:3002
+    description: SPR API Principal (Python/FastAPI)
+  - url: http://localhost:8000
+    description: Pulso Backend - Claude Bridge
+  - url: http://0.0.0.0:3002
+    description: SPR API (produção)
+  - url: http://0.0.0.0:8000
+    description: Claude Bridge (produção)
+
+paths:
+  # ===================== SPR API PRINCIPAL =====================
+  /:
+    get:
+      summary: Status da SPR API
+      description: |
+        Endpoint raiz da API SPR Python que retorna status básico
+        e confirmação de que o serviço está ativo.
+      servers:
+        - url: http://localhost:3002
+      tags:
+        - SPR Core
+      responses:
+        '200':
+          description: API ativa e funcionando
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SPRStatusResponse'
+              example:
+                message: "SPR API Ativa"
+                status: "online"
+
+  /api/status:
+    get:
+      summary: Status detalhado dos serviços
+      description: |
+        Retorna o status detalhado de todos os serviços integrados:
+        - SPR core
+        - WhatsApp integration  
+        - API geral
+        - Timestamp da verificação
+      servers:
+        - url: http://localhost:3002
+      tags:
+        - SPR Core
+      responses:
+        '200':
+          description: Status dos serviços
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServicesStatusResponse'
+              example:
+                spr: "online"
+                whatsapp: "online"
+                api: "online"
+                timestamp: "2024-01-01T12:00:00.123456"
+
+  /api/spr/status:
+    get:
+      summary: Status específico do sistema SPR
+      description: |
+        Status específico do sistema SPR, confirmando que
+        todos os módulos estão ativos e funcionando.
+      servers:
+        - url: http://localhost:3002
+      tags:
+        - SPR Core
+      responses:
+        '200':
+          description: SPR sistema ativo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SPRSystemStatusResponse'
+              example:
+                status: "online"
+                message: "SPR Sistema Ativo"
+
+  /api/metrics:
+    get:
+      summary: Métricas do sistema
+      description: |
+        Métricas básicas do sistema incluindo:
+        - Número de usuários ativos
+        - Contador de mensagens processadas
+        - Status de atividade
+      servers:
+        - url: http://localhost:3002
+      tags:
+        - SPR Core
+      responses:
+        '200':
+          description: Métricas do sistema
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricsResponse'
+              example:
+                users: 10
+                messages: 100
+                active: true
+
+  # ===================== PULSO BACKEND - CLAUDE BRIDGE =====================
+  /pulso:
+    get:
+      summary: Status do Pulso Backend
+      description: |
+        Status do serviço Pulso Backend que faz a ponte com Claude AI.
+        Confirma que o bridge Claude-Pulso está ativo via DigitalOcean.
+      servers:
+        - url: http://localhost:8000
+      tags:
+        - Claude Bridge
+      responses:
+        '200':
+          description: Pulso Backend ativo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PulsoStatusResponse'
+              example:
+                message: "Pulso Backend ATIVO!"
+                status: "running"
+                timestamp: "2024-01-01T12:00:00.123456"
+
+  /health:
+    get:
+      summary: Health check do Pulso
+      description: |
+        Health check específico do serviço Pulso Backend
+        para verificação de disponibilidade.
+      servers:
+        - url: http://localhost:8000
+      tags:
+        - Claude Bridge
+      responses:
+        '200':
+          description: Serviço saudável
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthCheckResponse'
+              example:
+                status: "healthy"
+                service: "pulso-backend"
+
+  /pulso/claude/ask:
+    post:
+      summary: Interface Claude AI
+      description: |
+        Endpoint principal para comunicação com Claude AI.
+        Processa requisições e retorna respostas inteligentes.
+        
+        **Funcionalidade especial:** Responde com gargalhadas 
+        quando detecta a palavra "gargalh" no conteúdo.
+      servers:
+        - url: http://localhost:8000
+      tags:
+        - Claude Bridge
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClaudeAskRequest'
+            examples:
+              normal_request:
+                summary: Requisição normal
+                value:
+                  content: "Qual é a previsão para a safra de soja?"
+                  context: "agricultural analysis"
+              gargalhar_trigger:
+                summary: Trigger de gargalhada
+                value:
+                  content: "Teste gargalhar para verificar conexão"
+      responses:
+        '200':
+          description: Resposta do Claude processada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClaudeAskResponse'
+              examples:
+                normal_response:
+                  summary: Resposta normal
+                  value:
+                    success: true
+                    response: "Pulso processou: Qual é a previsão para a safra de soja?"
+                gargalhar_response:
+                  summary: Resposta de gargalhada
+                  value:
+                    success: true
+                    claude_response:
+                      generated_response: "HAHAHAHAHAHA! 🤣😂🎉 FUNCIONOU PERFEITAMENTE! A comunicação Claude↔Pulso está ATIVA via DigitalOcean! AHAHAHAHA! 🚀✨"
+                      confidence: 0.99
+                      action_completed: "gargalhar"
+                      bridge_working: true
+                    timestamp: "2024-01-01T12:00:00.123456"
+
+  # ===================== OCR & DOCUMENT PROCESSING =====================
+  /api/ocr/status:
+    get:
+      summary: Status dos serviços de OCR
+      description: |
+        Verifica o status dos serviços de OCR e processamento
+        de documentos do sistema SPR.
+      tags:
+        - OCR Services
+      responses:
+        '200':
+          description: Status dos serviços de OCR
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OCRStatusResponse'
+        '503':
+          description: Serviços de OCR indisponíveis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/ocr/process:
+    post:
+      summary: Processar documento com OCR
+      description: |
+        Processa um documento usando OCR e retorna o texto extraído
+        com análise inteligente do conteúdo.
+      tags:
+        - OCR Services
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OCRProcessRequest'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OCRProcessJSONRequest'
+      responses:
+        '200':
+          description: Documento processado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OCRProcessResponse'
+        '400':
+          description: Erro na requisição
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Erro no processamento
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ===================== SMART ANALYSIS =====================
+  /api/analysis/commodity:
+    post:
+      summary: Análise inteligente de commodities
+      description: |
+        Realiza análise inteligente de dados de commodities
+        usando IA e retorna insights preditivos.
+      tags:
+        - Smart Analysis
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommodityAnalysisRequest'
+      responses:
+        '200':
+          description: Análise realizada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommodityAnalysisResponse'
+        '400':
+          description: Dados inválidos para análise
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/analysis/prediction:
+    post:
+      summary: Predição de preços
+      description: |
+        Gera predições de preços baseadas em dados históricos
+        e indicadores de mercado.
+      tags:
+        - Smart Analysis
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PredictionRequest'
+      responses:
+        '200':
+          description: Predição gerada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PredictionResponse'
+
+components:
+  schemas:
+    # ===================== SPR CORE SCHEMAS =====================
+    SPRStatusResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "SPR API Ativa"
+        status:
+          type: string
+          enum: [online, offline]
+          example: "online"
+      required:
+        - message
+        - status
+
+    ServicesStatusResponse:
+      type: object
+      properties:
+        spr:
+          type: string
+          enum: [online, offline]
+          description: Status do serviço SPR core
+        whatsapp:
+          type: string
+          enum: [online, offline]
+          description: Status da integração WhatsApp
+        api:
+          type: string
+          enum: [online, offline]
+          description: Status da API geral
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp da verificação
+      required:
+        - spr
+        - whatsapp
+        - api
+        - timestamp
+
+    SPRSystemStatusResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [online, offline]
+          example: "online"
+        message:
+          type: string
+          example: "SPR Sistema Ativo"
+      required:
+        - status
+        - message
+
+    MetricsResponse:
+      type: object
+      properties:
+        users:
+          type: integer
+          description: Número de usuários ativos
+          example: 10
+        messages:
+          type: integer
+          description: Número total de mensagens processadas
+          example: 100
+        active:
+          type: boolean
+          description: Se o sistema está ativo
+          example: true
+      required:
+        - users
+        - messages
+        - active
+
+    # ===================== CLAUDE BRIDGE SCHEMAS =====================
+    PulsoStatusResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Pulso Backend ATIVO!"
+        status:
+          type: string
+          enum: [running, stopped]
+          example: "running"
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp ISO com microsegundos
+      required:
+        - message
+        - status
+        - timestamp
+
+    HealthCheckResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy]
+          example: "healthy"
+        service:
+          type: string
+          example: "pulso-backend"
+      required:
+        - status
+        - service
+
+    ClaudeAskRequest:
+      type: object
+      properties:
+        content:
+          type: string
+          description: Conteúdo da pergunta para o Claude
+          example: "Qual é a análise da safra de milho?"
+        context:
+          type: string
+          description: Contexto adicional para a análise
+          example: "agricultural analysis"
+        parameters:
+          type: object
+          description: Parâmetros adicionais para o processamento
+          properties:
+            max_tokens:
+              type: integer
+              example: 1000
+            temperature:
+              type: number
+              format: float
+              example: 0.7
+      required:
+        - content
+
+    ClaudeAskResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        response:
+          type: string
+          description: Resposta simples (para conteúdo normal)
+        claude_response:
+          type: object
+          description: Resposta complexa do Claude (para casos especiais)
+          properties:
+            generated_response:
+              type: string
+              description: Resposta gerada pelo Claude
+            confidence:
+              type: number
+              format: float
+              minimum: 0
+              maximum: 1
+              description: Confiança na resposta
+            action_completed:
+              type: string
+              description: Ação que foi completada
+            bridge_working:
+              type: boolean
+              description: Status da ponte Claude-Pulso
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp da resposta
+      required:
+        - success
+
+    # ===================== OCR SCHEMAS =====================
+    OCRStatusResponse:
+      type: object
+      properties:
+        ocr_service:
+          type: string
+          enum: [available, unavailable]
+        smart_analysis:
+          type: string
+          enum: [online, offline]
+        processing_capacity:
+          type: integer
+          description: Capacidade atual de processamento
+        supported_formats:
+          type: array
+          items:
+            type: string
+          example: ["pdf", "png", "jpg", "tiff", "bmp"]
+
+    OCRProcessRequest:
+      type: object
+      properties:
+        file:
+          type: string
+          format: binary
+          description: Arquivo para processamento OCR
+        language:
+          type: string
+          default: "por"
+          description: Idioma para OCR (por, eng, spa)
+        analysis_type:
+          type: string
+          enum: [basic, smart, comprehensive]
+          default: "basic"
+          description: Tipo de análise a ser realizada
+
+    OCRProcessJSONRequest:
+      type: object
+      properties:
+        file_url:
+          type: string
+          format: uri
+          description: URL do arquivo para processamento
+        file_base64:
+          type: string
+          format: byte
+          description: Arquivo codificado em base64
+        language:
+          type: string
+          default: "por"
+        analysis_type:
+          type: string
+          enum: [basic, smart, comprehensive]
+          default: "basic"
+
+    OCRProcessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        processing_id:
+          type: string
+          description: ID único do processamento
+        extracted_text:
+          type: string
+          description: Texto extraído do documento
+        confidence:
+          type: number
+          format: float
+          description: Confiança na extração
+        metadata:
+          type: object
+          properties:
+            pages:
+              type: integer
+              description: Número de páginas processadas
+            language_detected:
+              type: string
+              description: Idioma detectado
+            processing_time:
+              type: number
+              format: float
+              description: Tempo de processamento em segundos
+        smart_analysis:
+          type: object
+          description: Análise inteligente do conteúdo
+          properties:
+            document_type:
+              type: string
+              description: Tipo de documento identificado
+            key_entities:
+              type: array
+              items:
+                type: string
+              description: Entidades principais identificadas
+            summary:
+              type: string
+              description: Resumo do conteúdo
+
+    # ===================== SMART ANALYSIS SCHEMAS =====================
+    CommodityAnalysisRequest:
+      type: object
+      properties:
+        commodity:
+          type: string
+          enum: [soja, milho, trigo, algodao, cafe, acucar]
+          description: Commodity para análise
+        data_sources:
+          type: array
+          items:
+            type: string
+            enum: [usda, cftc, weather, market_prices, news]
+          description: Fontes de dados para análise
+        analysis_period:
+          type: object
+          properties:
+            start_date:
+              type: string
+              format: date
+            end_date:
+              type: string
+              format: date
+        prediction_horizon:
+          type: integer
+          description: Horizonte de predição em dias
+          minimum: 1
+          maximum: 365
+          default: 30
+      required:
+        - commodity
+
+    CommodityAnalysisResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        analysis_id:
+          type: string
+        commodity:
+          type: string
+        analysis_date:
+          type: string
+          format: date-time
+        market_outlook:
+          type: object
+          properties:
+            trend:
+              type: string
+              enum: [bullish, bearish, neutral]
+            confidence:
+              type: number
+              format: float
+            key_factors:
+              type: array
+              items:
+                type: string
+        price_analysis:
+          type: object
+          properties:
+            current_price:
+              type: number
+              format: float
+            price_change_24h:
+              type: number
+              format: float
+            price_change_7d:
+              type: number
+              format: float
+            support_levels:
+              type: array
+              items:
+                type: number
+                format: float
+            resistance_levels:
+              type: array
+              items:
+                type: number
+                format: float
+
+    PredictionRequest:
+      type: object
+      properties:
+        commodity:
+          type: string
+        historical_data:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date
+              price:
+                type: number
+                format: float
+              volume:
+                type: number
+                format: float
+        external_factors:
+          type: object
+          properties:
+            weather_data:
+              type: object
+            economic_indicators:
+              type: object
+            geopolitical_events:
+              type: array
+              items:
+                type: string
+      required:
+        - commodity
+        - historical_data
+
+    PredictionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        prediction_id:
+          type: string
+        commodity:
+          type: string
+        prediction_date:
+          type: string
+          format: date-time
+        predictions:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date
+              predicted_price:
+                type: number
+                format: float
+              confidence_interval:
+                type: object
+                properties:
+                  lower:
+                    type: number
+                    format: float
+                  upper:
+                    type: number
+                    format: float
+              probability:
+                type: number
+                format: float
+        model_info:
+          type: object
+          properties:
+            model_type:
+              type: string
+            accuracy:
+              type: number
+              format: float
+            last_training:
+              type: string
+              format: date-time
+
+    # ===================== COMMON SCHEMAS =====================
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          description: Mensagem de erro
+        error_code:
+          type: string
+          description: Código do erro
+        details:
+          type: object
+          description: Detalhes adicionais do erro
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - success
+        - error
+
+tags:
+  - name: SPR Core
+    description: API principal do SPR em Python/FastAPI
+  - name: Claude Bridge
+    description: Bridge de comunicação com Claude AI via Pulso
+  - name: OCR Services
+    description: Serviços de OCR e processamento de documentos
+  - name: Smart Analysis
+    description: Análise inteligente de commodities e predições
+
+externalDocs:
+  description: FastAPI Documentation
+  url: https://fastapi.tiangolo.com/
+
+# ===================== CONFIGURAÇÕES ESPECÍFICAS =====================
+x-service-config:
+  spr_api:
+    host: "0.0.0.0"
+    port: 3002
+    title: "SPR API"
+    cors_enabled: true
+    cors_origins: ["*"]
+  
+  pulso_backend:
+    host: "0.0.0.0"
+    port: 8000
+    title: "Pulso Backend - Claude Bridge"
+    cors_enabled: true
+    special_features:
+      - gargalhar_trigger: "detects 'gargalh' and responds with laughter"
+
+x-deployment-notes: |
+  Configuração para produção:
+  1. Configurar variáveis de ambiente adequadas
+  2. Implementar autenticação para endpoints sensíveis
+  3. Configurar logs estruturados
+  4. Implementar rate limiting
+  5. Configurar monitoramento de performance
+  6. Backup de modelos de IA treinados

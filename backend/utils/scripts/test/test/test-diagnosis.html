@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 Teste Local - Diagnóstico React</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .test-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .test-section h3 {
+            color: #2c3e50;
+            margin-top: 0;
+        }
+        
+        .btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            background: #2980b9;
+        }
+        
+        .success { color: #27ae60; }
+        .error { color: #e74c3c; }
+        .warning { color: #f39c12; }
+        
+        .log-box {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            margin-top: 10px;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .iframe-test {
+            width: 100%;
+            height: 300px;
+            border: 2px solid #bdc3c7;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🧪 Teste Local - Sistema de Diagnóstico React</h1>
+        <p>Verificação dos componentes antes do deploy</p>
+    </div>
+
+    <div class="test-section">
+        <h3>1. 🔗 Teste de Conexão Backend</h3>
+        <button class="btn" onclick="testBackendConnection()">Testar Conexão</button>
+        <div id="connectionResult" class="log-box" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>2. 🎯 Teste Endpoint Diagnóstico</h3>
+        <button class="btn" onclick="testDiagnosisEndpoint()">Testar /react-diagnosis</button>
+        <div id="diagnosisResult" class="log-box" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>3. 🌐 Preview da Página de Diagnóstico</h3>
+        <button class="btn" onclick="loadDiagnosisPage()">Carregar Página</button>
+        <iframe id="diagnosisPreview" class="iframe-test" style="display: none;"></iframe>
+    </div>
+
+    <div class="test-section">
+        <h3>4. 📋 Instruções de Uso</h3>
+        <div>
+            <strong>Para usar em produção:</strong>
+            <ol>
+                <li>Deploy do backend com o novo endpoint</li>
+                <li>Acessar: <code>https://www.royalnegociosagricolas.com.br/react-diagnosis</code></li>
+                <li>Clicar em "🚀 Iniciar Diagnóstico"</li>
+                <li>Aguardar o relatório automático</li>
+                <li>Exportar resultados se necessário</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        async function testBackendConnection() {
+            const resultDiv = document.getElementById('connectionResult');
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = 'Testando conexão...';
+            
+            try {
+                // Testar localhost primeiro
+                const response = await fetch('http://localhost:3002/health');
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `✅ Backend funcionando!
+Status: ${data.status}
+Versão: ${data.version}
+Uptime: ${Math.round(data.uptime)}s
+CORS: ${data.cors}
+WhatsApp: ${data.whatsapp}`;
+                resultDiv.className = 'log-box success';
+                
+            } catch (error) {
+                resultDiv.innerHTML = `❌ Erro na conexão:
+${error.message}
+
+💡 Verifique se o backend está rodando:
+node backend_server_fixed.js`;
+                resultDiv.className = 'log-box error';
+            }
+        }
+        
+        async function testDiagnosisEndpoint() {
+            const resultDiv = document.getElementById('diagnosisResult');
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = 'Testando endpoint de diagnóstico...';
+            
+            try {
+                const response = await fetch('http://localhost:3002/react-diagnosis');
+                
+                if (response.ok) {
+                    const text = await response.text();
+                    const hasTitle = text.includes('Diagnóstico Remoto React');
+                    const hasScript = text.includes('ReactDiagnosisSystem');
+                    
+                    resultDiv.innerHTML = `✅ Endpoint funcionando!
+Status: ${response.status}
+Tipo: ${response.headers.get('content-type')}
+Título encontrado: ${hasTitle ? '✅' : '❌'}
+Script encontrado: ${hasScript ? '✅' : '❌'}
+Tamanho: ${text.length} bytes`;
+                    resultDiv.className = 'log-box success';
+                    
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+            } catch (error) {
+                resultDiv.innerHTML = `❌ Erro no endpoint:
+${error.message}
+
+💡 Verifique se o arquivo react-diagnosis.html existe`;
+                resultDiv.className = 'log-box error';
+            }
+        }
+        
+        function loadDiagnosisPage() {
+            const iframe = document.getElementById('diagnosisPreview');
+            iframe.style.display = 'block';
+            iframe.src = 'http://localhost:3002/react-diagnosis';
+        }
+        
+        // Teste automático na inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🧪 Sistema de teste carregado');
+            console.log('📍 Para testar: execute "node backend_server_fixed.js" em outro terminal');
+        });
+    </script>
+</body>
+</html>

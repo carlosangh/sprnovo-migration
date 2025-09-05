@@ -1,0 +1,524 @@
+{
+  "info": {
+    "name": "SPR APIs - Sistema Preditivo Royal",
+    "description": "Collection completa das APIs do Sistema Preditivo Royal (SPR) para análise de commodities agrícolas.\n\nInclui:\n- Backend Node.js principal\n- Integração WhatsApp\n- Serviços Python (OCR, análise)\n- Sistema de autenticação\n\nPara usar:\n1. Configure as variáveis de ambiente\n2. Execute os requests na ordem sugerida\n3. Tokens serão salvos automaticamente",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "backend_base_url",
+      "value": "http://localhost:3002",
+      "type": "string"
+    },
+    {
+      "key": "claude_base_url", 
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "whatsapp_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "session_name",
+      "value": "royal-session",
+      "type": "string"
+    },
+    {
+      "key": "secret_key",
+      "value": "SPR_ROYAL_NEGOCIOS_SECURE_TOKEN_2025",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "🏥 Health Checks",
+      "item": [
+        {
+          "name": "Backend Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{backend_base_url}}/health",
+            "description": "Health check completo do backend Node.js com métricas de sistema"
+          },
+          "response": []
+        },
+        {
+          "name": "Backend Simple Health",
+          "request": {
+            "method": "GET", 
+            "header": [],
+            "url": "{{backend_base_url}}/health/simple",
+            "description": "Health check simples para load balancers"
+          },
+          "response": []
+        },
+        {
+          "name": "API Root Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{backend_base_url}}/api",
+            "description": "Informações básicas da API principal"
+          },
+          "response": []
+        },
+        {
+          "name": "Claude Bridge Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{claude_base_url}}/health",
+            "description": "Health check do serviço Pulso/Claude"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🔐 Autenticação",
+      "item": [
+        {
+          "name": "Login com Email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.token) {",
+                  "        pm.collectionVariables.set('auth_token', response.token);",
+                  "        console.log('Token salvo:', response.token);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"carlos@royalnegociosagricolas.com.br\",\n  \"password\": \"Adega001*\"\n}"
+            },
+            "url": "{{backend_base_url}}/api/auth/login",
+            "description": "Login com email - salva token automaticamente"
+          }
+        },
+        {
+          "name": "Login com Username",
+          "event": [
+            {
+              "listen": "test", 
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.token) {",
+                  "        pm.collectionVariables.set('auth_token', response.token);",
+                  "        console.log('Token salvo:', response.token);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type", 
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"Adega001*\"\n}"
+            },
+            "url": "{{backend_base_url}}/api/auth/login",
+            "description": "Login com username - salva token automaticamente"
+          }
+        },
+        {
+          "name": "Teste Endpoint Protegido",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": "{{backend_base_url}}/api/protected/test",
+            "description": "Testa acesso a endpoint protegido (versão emergencial)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📊 Dados Agrícolas",
+      "item": [
+        {
+          "name": "Últimas Notícias",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{backend_base_url}}/api/news/latest",
+            "description": "Obtém últimas notícias do setor agrícola"
+          }
+        },
+        {
+          "name": "Relatório WASDE",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{backend_base_url}}/api/reports/wasde/latest", 
+            "description": "World Agricultural Supply and Demand Estimates (USDA)"
+          }
+        },
+        {
+          "name": "Progresso das Culturas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{backend_base_url}}/api/us/crop-progress",
+            "description": "Progresso semanal das culturas nos EUA"
+          }
+        },
+        {
+          "name": "Dados de Seca",
+          "request": {
+            "method": "GET", 
+            "header": [],
+            "url": "{{backend_base_url}}/api/us/drought/latest",
+            "description": "Condições de seca por estado (categorias D0-D4)"
+          }
+        },
+        {
+          "name": "Relatório COT",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{backend_base_url}}/api/cftc/cot",
+            "description": "Commitment of Traders - posicionamento de comerciais e não-comerciais"
+          }
+        },
+        {
+          "name": "Dados de Etanol",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{backend_base_url}}/api/eia/ethanol/latest",
+            "description": "Produção, estoques e comércio de etanol (EIA)"
+          }
+        },
+        {
+          "name": "Status Intel Services",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{backend_base_url}}/api/intel/status",
+            "description": "Status dos serviços de inteligência e análise"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📱 WhatsApp API",
+      "item": [
+        {
+          "name": "Status WhatsApp Service",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{backend_base_url}}/api/whatsapp/status", 
+            "description": "Verifica se WPPConnect está disponível"
+          }
+        },
+        {
+          "name": "Gerar Token WhatsApp",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.token) {",
+                  "        pm.collectionVariables.set('whatsapp_token', response.token);",
+                  "        console.log('WhatsApp token salvo:', response.token);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{backend_base_url}}/api/whatsapp/{{session_name}}/{{secret_key}}/generate-token",
+            "description": "Gera token de autenticação para WPPConnect"
+          }
+        },
+        {
+          "name": "Iniciar Sessão WhatsApp",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{whatsapp_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"webhook\": \"https://www.royalnegociosagricolas.com.br/webhook/whatsapp\",\n  \"waitQrCode\": true,\n  \"logQr\": false,\n  \"disableSpins\": true,\n  \"disableWelcome\": true\n}"
+            },
+            "url": "{{backend_base_url}}/api/whatsapp/{{session_name}}/start-session",
+            "description": "Inicia sessão WhatsApp - gera QR Code"
+          }
+        },
+        {
+          "name": "Verificar Status da Sessão",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization", 
+                "value": "Bearer {{whatsapp_token}}"
+              }
+            ],
+            "url": "{{backend_base_url}}/api/whatsapp/{{session_name}}/check-connection-session",
+            "description": "Verifica se WhatsApp está conectado"
+          }
+        },
+        {
+          "name": "Obter QR Code",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{whatsapp_token}}"
+              }
+            ],
+            "url": "{{backend_base_url}}/api/whatsapp/{{session_name}}/qrcode-session",
+            "description": "Obtém QR Code como imagem PNG"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🐍 Python Services",
+      "item": [
+        {
+          "name": "SPR API Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{backend_base_url}}/api/status",
+            "description": "Status dos serviços SPR Python"
+          }
+        },
+        {
+          "name": "SPR System Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{backend_base_url}}/api/spr/status",
+            "description": "Status específico do sistema SPR"
+          }
+        },
+        {
+          "name": "SPR Metrics",
+          "request": {
+            "method": "GET", 
+            "header": [],
+            "url": "{{backend_base_url}}/api/metrics",
+            "description": "Métricas do sistema (usuários, mensagens)"
+          }
+        },
+        {
+          "name": "Pulso Backend Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{claude_base_url}}/",
+            "description": "Status do Pulso Backend (Claude Bridge)"
+          }
+        },
+        {
+          "name": "Consultar Claude AI",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Qual é a previsão para a safra de soja no Brasil?\",\n  \"context\": \"agricultural analysis\"\n}"
+            },
+            "url": "{{claude_base_url}}/pulso/claude/ask",
+            "description": "Envia pergunta para Claude AI via Pulso Backend"
+          }
+        },
+        {
+          "name": "Teste Gargalhada Claude",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Teste gargalhar para verificar conexão Claude-Pulso\"\n}"
+            },
+            "url": "{{claude_base_url}}/pulso/claude/ask",
+            "description": "Testa resposta especial do Claude (trigger: gargalh)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔍 Testes de Integração",
+      "item": [
+        {
+          "name": "Fluxo Completo - Login + Dados",
+          "item": [
+            {
+              "name": "1. Login",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Login successful', function() {",
+                      "    pm.response.to.have.status(200);",
+                      "    const response = pm.response.json();",
+                      "    pm.expect(response.success).to.be.true;",
+                      "    pm.expect(response.token).to.be.a('string');",
+                      "    pm.collectionVariables.set('auth_token', response.token);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"carlos@royalnegociosagricolas.com.br\",\n  \"password\": \"Adega001*\"\n}"
+                },
+                "url": "{{backend_base_url}}/api/auth/login"
+              }
+            },
+            {
+              "name": "2. Obter Dados WASDE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('WASDE data retrieved', function() {",
+                      "    pm.response.to.have.status(200);",
+                      "    const response = pm.response.json();", 
+                      "    pm.expect(response.ok).to.be.true;",
+                      "    pm.expect(response.data).to.be.an('object');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{backend_base_url}}/api/reports/wasde/latest"
+              }
+            },
+            {
+              "name": "3. Status Claude Bridge",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Claude bridge is running', function() {",
+                      "    pm.response.to.have.status(200);",
+                      "    const response = pm.response.json();",
+                      "    pm.expect(response.status).to.eql('running');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{claude_base_url}}/"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Logs de pré-requisição",
+          "console.log('Executando request para:', pm.request.url.toString());"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Testes globais",
+          "pm.test('Response time is reasonable', function() {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});",
+          "",
+          "pm.test('Content-Type header is present', function() {",
+          "    pm.response.to.have.header('Content-Type');",
+          "});"
+        ]
+      }
+    }
+  ]
+}

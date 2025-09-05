@@ -1,0 +1,75 @@
+RELATÓRIO DE EXTRAÇÃO DE SCHEMAS SQLite - SPR
+==================================================
+
+Banco: spr_central
+Caminho: /home/cadu/spr-project/data/spr_central.db
+Schema salvo em: /home/cadu/SPRNOVO/db/sqlite_schemas/spr_central_schema.sql
+Número de tabelas: 10
+Tabelas: commodities, sqlite_sequence, price_history, whatsapp_users, whatsapp_sessions, offers, whatsapp_messages, analytics_metrics, agentes_status, system_config
+
+Banco: clg_test
+Caminho: /home/cadu/ciclologico_production/backend_v2/clg_test.db
+Schema salvo em: /home/cadu/SPRNOVO/db/sqlite_schemas/clg_test_schema.sql
+Número de tabelas: 10
+Tabelas: users, sources, prices, weather, news, export_sales, cot, api_usage, ingest_runs, files
+
+Banco: clg_historical
+Caminho: /home/cadu/ciclologico_production/backend_v2/clg_historical.db
+Schema salvo em: /home/cadu/SPRNOVO/db/sqlite_schemas/clg_historical_schema.sql
+Número de tabelas: 11
+Tabelas: prices, sqlite_sequence, users, sources, weather, news, export_sales, cot, api_usage, ingest_runs, files
+
+Banco: spr_broadcast
+Caminho: /home/cadu/spr_deployment/spr_broadcast.db
+Schema salvo em: /home/cadu/SPRNOVO/db/sqlite_schemas/spr_broadcast_schema.sql
+Número de tabelas: 13
+Tabelas: broadcast_groups, sqlite_sequence, broadcast_campaigns, broadcast_approvals, broadcast_recipients, broadcast_logs, commodities, weather_data, government_data, whatsapp_users, price_history, market_alerts, price_predictions
+
+Banco: spr_users
+Caminho: /home/cadu/projeto_SPR/spr_users.db
+Schema salvo em: /home/cadu/SPRNOVO/db/sqlite_schemas/spr_users_schema.sql
+Número de tabelas: 2
+Tabelas: users, user_sessions
+
+Banco: spr
+Caminho: /home/cadu/projeto_SPR/data/spr.db
+Schema salvo em: /home/cadu/SPRNOVO/db/sqlite_schemas/spr_schema.sql
+Número de tabelas: 8
+Tabelas: us_reports, us_weather, us_news, source_priority, us_market_news, us_export_sales, us_drought_data, us_cftc_data
+
+Banco: spr_backup
+Caminho: /home/cadu/projeto_SPR/data/spr_backup.db
+Schema salvo em: /home/cadu/SPRNOVO/db/sqlite_schemas/spr_backup_schema.sql
+Número de tabelas: 15
+Tabelas: us_reports, us_weather, us_news, source_priority, us_market_news, us_export_sales, us_drought_data, us_cftc_data, schema_migrations, broadcast_groups, sqlite_sequence, broadcast_campaigns, broadcast_approvals, broadcast_recipients, broadcast_logs
+
+Banco: spr_work
+Caminho: /home/cadu/projeto_SPR/data/spr_work.db
+Schema salvo em: /home/cadu/SPRNOVO/db/sqlite_schemas/spr_work_schema.sql
+Número de tabelas: 20
+Tabelas: us_reports, us_weather, us_news, source_priority, us_market_news, us_export_sales, us_drought_data, us_cftc_data, schema_migrations, broadcast_groups, sqlite_sequence, broadcast_campaigns, broadcast_approvals, broadcast_recipients, broadcast_logs, prices_raw, prices, ingest_runs, commodities, markets
+
+Banco: spr_broadcast
+Caminho: /home/cadu/projeto_SPR/spr_broadcast.db
+Schema salvo em: /home/cadu/SPRNOVO/db/sqlite_schemas/spr_broadcast_schema.sql
+Número de tabelas: 13
+Tabelas: broadcast_groups, sqlite_sequence, broadcast_campaigns, broadcast_approvals, broadcast_recipients, broadcast_logs, commodities, weather_data, government_data, whatsapp_users, price_history, market_alerts, price_predictions
+
+Banco: spr_whatsapp
+Caminho: /home/cadu/projeto_SPR/spr_whatsapp.db
+Schema salvo em: /home/cadu/SPRNOVO/db/sqlite_schemas/spr_whatsapp_schema.sql
+Número de tabelas: 5
+Tabelas: messages, sqlite_sequence, sessions, system_logs, commodities_cache
+
+Banco: spr_validation
+Caminho: /home/cadu/projeto_SPR/spr_validation.db
+Schema salvo em: /home/cadu/SPRNOVO/db/sqlite_schemas/spr_validation_schema.sql
+Número de tabelas: 5
+Tabelas: commodities, sqlite_sequence, prices_raw, prices, ingest_runs
+
+Banco: spr_yahoo_finance
+Caminho: /home/cadu/projeto_SPR/spr_yahoo_finance.db
+Schema salvo em: /home/cadu/SPRNOVO/db/sqlite_schemas/spr_yahoo_finance_schema.sql
+Número de tabelas: 4
+Tabelas: markets, commodities, symbols, prices
+
