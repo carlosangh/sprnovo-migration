@@ -1,0 +1,182 @@
+version: '3.9'
+
+services:
+  # PostgreSQL Database (legado preservado)
+  postgres:
+    container_name: spr-postgres-new
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: spr_db
+      POSTGRES_USER: spr_user
+      POSTGRES_PASSWORD: spr_password_2025
+      TZ: America/Cuiaba
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U spr_user -d spr_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sprnovo_network
+
+  # Redis Cache
+  redis:
+    container_name: spr-redis
+    image: redis:7-alpine
+    restart: always
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    environment:
+      TZ: America/Cuiaba
+    networks:
+      - sprnovo_network
+
+  # SPRNOVO Backend
+  backend:
+    container_name: sprnovo-backend
+    build: 
+      context: ./backend/node
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - PORT=8090
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=spr_db
+      - DB_USER=spr_user
+      - DB_PASSWORD=spr_password_2025
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - EVO_URL=http://evolution-api:8080
+      - EVO_APIKEY=spr-evolution-key-2025
+      - TZ=America/Cuiaba
+    ports:
+      - "8090:8090"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - ./backend/node:/app
+      - /app/node_modules
+    networks:
+      - sprnovo_network
+
+  # SPRNOVO Frontend
+  frontend:
+    container_name: sprnovo-frontend
+    image: nginx:alpine
+    restart: always
+    environment:
+      TZ: America/Cuiaba
+    ports:
+      - "8082:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+      - ./nginx/frontend.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+    networks:
+      - sprnovo_network
+
+  # Evolution API WhatsApp
+  evolution-api:
+    container_name: evolution_api_sprnovo
+    image: atendai/evolution-api:v1.8.2
+    restart: always
+    environment:
+      - AUTHENTICATION_API_KEY=spr-evolution-key-2025
+      - SERVER_TYPE=http
+      - SERVER_PORT=8080
+      - DATABASE_ENABLED=false
+      - LOG_LEVEL=ERROR,WARN,DEBUG,INFO
+      - LOG_COLOR=true
+      - QRCODE_LIMIT=30
+      - TZ=America/Cuiaba
+    ports:
+      - "8080:8080"
+    volumes:
+      - evolution_instances:/evolution/instances
+      - evolution_store:/evolution/store
+    networks:
+      - sprnovo_network
+
+  # n8n Automation Platform
+  n8n:
+    container_name: sprnovo-n8n
+    image: n8nio/n8n:latest
+    restart: always
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=spr_n8n_2025_admin
+      - N8N_HOST=automation.royalnegociosagricolas.com.br
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=https://automation.royalnegociosagricolas.com.br/
+      - EXECUTIONS_MODE=queue
+      - QUEUE_BULL_REDIS_HOST=redis
+      - QUEUE_BULL_REDIS_PORT=6379
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=n8n_db
+      - DB_POSTGRESDB_USER=n8n_user
+      - DB_POSTGRESDB_PASSWORD=n8n_password_2025
+      - GENERIC_TIMEZONE=America/Cuiaba
+      - TZ=America/Cuiaba
+    ports:
+      - "5678:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - sprnovo_network
+
+  # PostgreSQL database setup for n8n
+  postgres-init:
+    container_name: postgres-init-n8n
+    image: postgres:15-alpine
+    environment:
+      PGPASSWORD: spr_password_2025
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: >
+      sh -c "
+        psql -h postgres -U spr_user -d spr_db -c \"CREATE DATABASE n8n_db;\" || true &&
+        psql -h postgres -U spr_user -d spr_db -c \"CREATE USER n8n_user WITH PASSWORD 'n8n_password_2025';\" || true &&
+        psql -h postgres -U spr_user -d spr_db -c \"GRANT ALL PRIVILEGES ON DATABASE n8n_db TO n8n_user;\" || true
+      "
+    networks:
+      - sprnovo_network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  n8n_data:
+    driver: local
+  evolution_instances:
+    driver: local
+  evolution_store:
+    driver: local
+
+networks:
+  sprnovo_network:
+    driver: bridge

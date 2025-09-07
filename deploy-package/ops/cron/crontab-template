@@ -1,0 +1,45 @@
+# SPR System Crontab Configuration
+# Copy this to /etc/cron.d/spr-system or install with: crontab < crontab-template
+
+# Database backup - Daily at 2:00 AM
+0 2 * * * /opt/spr/ops/cron/backup-database.sh
+
+# Log rotation - Daily at 3:00 AM
+0 3 * * * /opt/spr/ops/cron/log-rotation.sh
+
+# Health monitoring - Every 5 minutes
+*/5 * * * * /opt/spr/ops/cron/health-monitor.sh
+
+# System cleanup - Weekly on Sundays at 4:00 AM
+0 4 * * 0 /opt/spr/ops/cron/system-cleanup.sh
+
+# SSL certificate renewal check - Daily at 1:00 AM
+0 1 * * * /usr/bin/certbot renew --quiet --nginx && systemctl reload nginx
+
+# PM2 log rotation - Daily at 5:00 AM
+0 5 * * * /usr/bin/pm2 reloadLogs
+
+# Disk usage report - Weekly on Mondays at 6:00 AM
+0 6 * * 1 /opt/spr/ops/cron/log-rotation.sh --report
+
+# Application restart (if needed) - Daily at 6:00 AM on Sundays
+0 6 * * 0 /opt/spr/ops/pm2/pm2-deploy.sh production
+
+# Backup verification - Weekly on Tuesdays at 7:00 AM
+0 7 * * 2 /opt/spr/ops/cron/backup-database.sh --verify
+
+# Health report generation - Daily at 8:00 AM
+0 8 * * * /opt/spr/ops/cron/health-monitor.sh --report
+
+# Example environment-specific cron jobs:
+
+# Staging environment - Deploy latest changes (weekdays only)
+# 0 9 * * 1-5 /opt/spr/ops/ci-cd/deploy.sh staging
+
+# Production environment - Restart at low traffic time
+# 0 4 * * * systemctl reload nginx
+
+# Custom application tasks:
+# */15 * * * * /opt/spr/backend/scripts/process-queue.sh
+# 0 */6 * * * /opt/spr/backend/scripts/cleanup-temp-files.sh
+# 0 12 * * * /opt/spr/backend/scripts/generate-daily-report.sh

@@ -1,0 +1,1 @@
+# Estrutura de Testes SPR\n\n## Testes disponíveis:\n- test-license-system.js: Testes do sistema de licenças\n- Testes em /home/cadu/spr-project/tests/\n- Testes do frontend em /opt/spr/frontend/node_modules/ (Jest)\n\n## Comandos:\n- npm run test-license\n- npm run smoke-demo\n- npm run smoke-complete
