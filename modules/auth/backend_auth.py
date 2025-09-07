@@ -154,5 +154,18 @@ async def protected_test():
     }
 
 if __name__ == "__main__":
-    print("🚀 Iniciando SPR Backend com Autenticação na porta 3002...")
-    uvicorn.run(app, host="0.0.0.0", port=3002, reload=False)
+    import sys
+    print(f"Python: {sys.executable}", flush=True)
+    print("🚀 Iniciando SPR Backend com Autenticação na porta 3002...", flush=True)
+    print(f"FastAPI App: {app}", flush=True)
+    print("Tentando executar uvicorn...", flush=True)
+    try:
+        print("Antes de uvicorn.run", flush=True)
+        uvicorn.run(app, host="0.0.0.0", port=3002, reload=False, log_level="info")
+        print("Após uvicorn.run", flush=True)
+    except Exception as e:
+        print(f"❌ Erro ao iniciar servidor: {e}", flush=True)
+        import traceback
+        traceback.print_exc()
+    finally:
+        print("Finalizando execução", flush=True)

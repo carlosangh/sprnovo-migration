@@ -1,0 +1,350 @@
+{
+  "system_info": {
+    "os": "Linux 6.6.87.2-microsoft-standard-WSL2",
+    "cpu": "Intel(R) Core(TM) i5-10300H CPU @ 2.50GHz",
+    "cores": 8,
+    "memory": {
+      "total": "7.7Gi",
+      "available": "4.6Gi"
+    },
+    "timezone": "America/Cuiaba",
+    "tools": {
+      "node": "v24.4.1",
+      "npm": "11.4.2",
+      "python": "3.12.3",
+      "docker": "28.1.1-rd",
+      "docker_compose": "v2.37.1",
+      "pnpm": "not_installed",
+      "yarn": "not_installed"
+    }
+  },
+  "repo": {
+    "type": "git",
+    "branch": "master",
+    "remotes": [],
+    "last_commit": {
+      "hash": "f087543",
+      "message": "chore: initial SPR backend/API/DB extraction (source-only, no-frontend)"
+    },
+    "pending_changes": {
+      "modified": ["modules/auth/backend_auth.py"],
+      "untracked": [
+        "_reports/GIT_SUMMARY.txt",
+        "analyze_db_structure.py",
+        "extract_sqlite_schemas.py"
+      ]
+    }
+  },
+  "file_inventory": {
+    "total_files_by_type": {
+      "sh": 34,
+      "py": 20,
+      "js": 18,
+      "md": 16,
+      "sql": 15,
+      "ts": 13,
+      "txt": 11,
+      "json": 9,
+      "yml": 6,
+      "html": 5,
+      "template": 5
+    },
+    "largest_files": [
+      {
+        "path": "_reports/diretorios_spr.txt",
+        "size_mb": 4.7
+      },
+      {
+        "path": "_reports/frontend_candidates.txt",
+        "size_mb": 2.0
+      },
+      {
+        "path": "backend/node/package-lock.json",
+        "size_kb": 382
+      },
+      {
+        "path": "_reports/arquivos_classificados.csv",
+        "size_kb": 264
+      },
+      {
+        "path": "backend/node/backend_server_fixed.js",
+        "size_kb": 69
+      }
+    ],
+    "directories": {
+      "root": "/home/cadu/SPRNOVO",
+      "main_folders": [
+        "api",
+        "backend",
+        "modules",
+        "db",
+        "ops",
+        "contracts",
+        "secrets",
+        "scripts",
+        "_reports"
+      ]
+    }
+  },
+  "modules": {
+    "auth": {
+      "path": "modules/auth",
+      "framework": "FastAPI",
+      "files": ["backend_auth.py"],
+      "port": 3002,
+      "status": "active"
+    },
+    "ocr": {
+      "path": "modules/ocr",
+      "framework": "FastAPI",
+      "files": [
+        "ocr_service_enhanced.py",
+        "clg_smart_agent.py",
+        "smart_analysis_agent.py"
+      ],
+      "features": ["document_ocr", "multi_agent", "background_tasks"],
+      "status": "active"
+    },
+    "ingestion": {
+      "path": "modules/ingestion",
+      "type": "data_collection",
+      "sources": ["CEPEA", "IMEA", "Climate"],
+      "files": [
+        "cepea_ingester.py",
+        "imea_ingester.py",
+        "clima_ingester.py",
+        "daily_report.py"
+      ],
+      "status": "active"
+    },
+    "spr_core": {
+      "path": "modules/spr-core",
+      "status": "empty"
+    },
+    "whatsapp": {
+      "path": "modules/whatsapp",
+      "status": "empty"
+    }
+  },
+  "backend_endpoints": {
+    "nodejs_express": {
+      "path": "backend/node",
+      "framework": "Express",
+      "main_file": "backend_server_fixed.js",
+      "endpoints": [
+        {"method": "POST", "path": "/api/auth/login", "auth": false},
+        {"method": "POST", "path": "/api/auth/refresh", "auth": true},
+        {"method": "GET", "path": "/api/status", "auth": false},
+        {"method": "POST", "path": "/api/webhook/whatsapp", "auth": false},
+        {"method": "GET", "path": "/api/webhook/whatsapp", "auth": false},
+        {"method": "GET", "path": "/chat", "auth": false},
+        {"method": "GET", "path": "/api/qr", "auth": false},
+        {"method": "POST", "path": "/api/generate-message", "auth": true},
+        {"method": "GET", "path": "/api/health", "auth": false},
+        {"method": "GET", "path": "/api/metrics", "auth": true},
+        {"method": "POST", "path": "/api/analyze-sentiment", "auth": false},
+        {"method": "POST", "path": "/api/upload", "auth": false},
+        {"method": "GET", "path": "/api/config", "auth": false},
+        {"method": "POST", "path": "/api/config", "auth": false},
+        {"method": "GET", "path": "/api/proof/real-data", "auth": false},
+        {"method": "GET", "path": "/api/commodities/dashboard/summary", "auth": false},
+        {"method": "GET", "path": "/api/offer-management", "auth": false}
+      ],
+      "middlewares": [
+        "helmet",
+        "cors",
+        "rate-limiting",
+        "compression",
+        "morgan-logging",
+        "input-sanitization"
+      ]
+    },
+    "python_fastapi": {
+      "services": [
+        {
+          "name": "auth_service",
+          "port": 3002,
+          "path": "modules/auth/backend_auth.py"
+        },
+        {
+          "name": "ocr_service",
+          "path": "modules/ocr/ocr_service_enhanced.py"
+        }
+      ]
+    }
+  },
+  "frontend_routes": {
+    "status": "NOT_FOUND",
+    "note": "No frontend application found in the project"
+  },
+  "databases": {
+    "current": "SQLite",
+    "migration_target": "PostgreSQL",
+    "sqlite_schemas": [
+      "spr_central_schema.sql",
+      "spr_work_schema.sql",
+      "spr_users_schema.sql",
+      "spr_broadcast_schema.sql",
+      "clg_historical_schema.sql",
+      "clg_test_schema.sql"
+    ],
+    "main_tables": [
+      "commodities",
+      "price_history",
+      "whatsapp_users",
+      "whatsapp_sessions",
+      "offers",
+      "whatsapp_messages",
+      "analytics_metrics",
+      "agentes_status",
+      "system_config"
+    ],
+    "migration_script": "db/migration_manager.py"
+  },
+  "services": {
+    "ports": {
+      "3002": "FastAPI Auth Service",
+      "3000-3010": "Node.js Backend Range",
+      "5432": "PostgreSQL (configured, not active)",
+      "6379": "Redis (configured, not installed)"
+    },
+    "process_manager": "PM2",
+    "web_server": "Nginx",
+    "monitoring": ["Prometheus", "Grafana"],
+    "cron_jobs": [
+      "backup-database.sh",
+      "log-rotation.sh",
+      "health-monitor.sh",
+      "system-cleanup.sh"
+    ]
+  },
+  "configs": {
+    "env_templates": [
+      "secrets/templates/.env.production.template",
+      "secrets/templates/.env.staging.template"
+    ],
+    "required_env_vars": [
+      "DATABASE_URL",
+      "REDIS_URL",
+      "NODE_ENV",
+      "BACKEND_PORT",
+      "JWT_SECRET",
+      "SESSION_SECRET",
+      "ENCRYPTION_KEY",
+      "FRONTEND_URL",
+      "CORS_ORIGIN"
+    ],
+    "security_features": [
+      "JWT Authentication",
+      "Rate Limiting",
+      "Helmet.js Headers",
+      "Input Sanitization",
+      "CORS Configuration",
+      "Webhook Signature Verification"
+    ]
+  },
+  "dependencies": {
+    "nodejs": {
+      "production": [
+        "express@^4.18.2",
+        "cors@^2.8.5",
+        "helmet@^6.0.1",
+        "express-rate-limit@^6.7.0",
+        "jsonwebtoken@^9.0.0",
+        "bcrypt@^5.1.0",
+        "axios@^1.3.4",
+        "sqlite3@^5.1.6",
+        "socket.io@^4.6.1"
+      ],
+      "development": [
+        "nodemon@^2.0.22",
+        "typescript@^5.9.2",
+        "jest@^29.7.0",
+        "eslint",
+        "prettier"
+      ]
+    },
+    "python": {
+      "inferred": [
+        "fastapi",
+        "uvicorn",
+        "python-multipart",
+        "pillow",
+        "pandas",
+        "requests"
+      ]
+    }
+  },
+  "quality": {
+    "test_scripts": [
+      "smoke-license-comprehensive.js",
+      "e2e-license-tests.js",
+      "anti-mock-validation.js",
+      "performance-load-tests.js",
+      "smoke_test.py"
+    ],
+    "linters": ["ESLint", "Prettier"],
+    "test_framework": "Jest",
+    "pre_commit": "Husky + lint-staged"
+  },
+  "risks": {
+    "critical": [
+      "NO_FRONTEND_APPLICATION",
+      "WHATSAPP_MODULE_EMPTY",
+      "SPR_CORE_MODULE_EMPTY",
+      "SQLITE_IN_PRODUCTION",
+      "NO_GIT_REMOTE"
+    ],
+    "high": [
+      "REDIS_NOT_INSTALLED",
+      "NO_ENV_FILES",
+      "SSL_NOT_CONFIGURED",
+      "BACKUPS_NOT_RUNNING"
+    ],
+    "medium": [
+      "INCOMPLETE_DOCUMENTATION",
+      "NO_CI_CD_PIPELINE",
+      "MOCK_SYSTEM_ACTIVE",
+      "NO_API_DOCUMENTATION"
+    ]
+  },
+  "completion_status": {
+    "percentage": 40,
+    "completed": [
+      "Backend Node.js structure",
+      "FastAPI auth service",
+      "OCR module",
+      "Data ingestion scripts",
+      "Database schemas",
+      "DevOps templates"
+    ],
+    "missing": [
+      "Frontend application",
+      "WhatsApp integration",
+      "SPR Core logic",
+      "Production database",
+      "Redis cache",
+      "Real environment configs",
+      "CI/CD pipeline",
+      "API documentation"
+    ]
+  },
+  "next_steps_priority": [
+    "Create frontend application (Next.js/React)",
+    "Implement WhatsApp module with real API",
+    "Migrate to PostgreSQL database",
+    "Configure production environment (.env files)",
+    "Implement SPR-Core business logic",
+    "Install and configure Redis",
+    "Setup CI/CD pipeline",
+    "Create API documentation (OpenAPI/Swagger)",
+    "Remove all mock implementations",
+    "Setup production monitoring (Prometheus/Grafana)"
+  ],
+  "analysis_metadata": {
+    "date": "2025-09-05",
+    "analyzer": "Claude Code",
+    "version": "1.0.0",
+    "project_root": "/home/cadu/SPRNOVO"
+  }
+}

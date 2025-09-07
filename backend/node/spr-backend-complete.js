@@ -7,6 +7,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const axios = require('axios');
+require('dotenv').config();
 
 // Configuração da aplicação
 const app = express();
@@ -233,7 +234,11 @@ mtrRouter.post('/detect', async (req, res) => {
 // 3. WHATSAPP ROUTER
 const whatsappRouter = express.Router();
 
-const WPPCONNECT_BASE_URL = process.env.WPPCONNECT_URL || 'http://localhost:3003';
+const EVO_URL = process.env.EVO_URL || process.env.EVOLUTION_API_URL;
+const EVO_APIKEY = process.env.EVO_APIKEY || process.env.EVOLUTION_API_KEY;
+const EVO_WEBHOOK_TOKEN = process.env.EVO_WEBHOOK_TOKEN || process.env.EVOLUTION_WEBHOOK_TOKEN;
+
+console.log('🔧 Evolution API Config:', { url: EVO_URL, hasApiKey: !!EVO_APIKEY, hasToken: !!EVO_WEBHOOK_TOKEN });
 
 /**
  * GET /whatsapp/health 
@@ -304,6 +309,206 @@ whatsappRouter.get('/status', async (req, res) => {
   }
 });
 
+/**
+ * POST /whatsapp/instance
+ * Criar nova instância WhatsApp na Evolution API
+ */
+whatsappRouter.post('/instance', async (req, res) => {
+  try {
+    const { instanceName, qrcode = true } = req.body;
+    
+    if (!instanceName) {
+      return res.status(400).json({
+        success: false,
+        error: 'instanceName é obrigatório',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    const response = await axios.post(`${EVO_URL}/instance/create`, {
+      instanceName,
+      qrcode
+    }, {
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': EVO_APIKEY
+      },
+      timeout: 10000
+    });
+
+    res.json({
+      success: true,
+      data: response.data,
+      instanceName,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Erro ao criar instância:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Erro ao criar instância WhatsApp',
+      message: error.response?.data?.message || error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+/**
+ * GET /whatsapp/qr/:instance
+ * Obter QR Code de uma instância
+ */
+whatsappRouter.get('/qr/:instance', async (req, res) => {
+  try {
+    const { instance } = req.params;
+    
+    const response = await axios.get(`${EVO_URL}/instance/connect/${instance}`, {
+      headers: {
+        'apikey': EVO_APIKEY
+      },
+      timeout: 10000
+    });
+
+    res.json({
+      success: true,
+      data: response.data,
+      instance,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Erro ao obter QR Code:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Erro ao obter QR Code',
+      message: error.response?.data?.message || error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+/**
+ * POST /whatsapp/send
+ * Enviar mensagem via Evolution API
+ */
+whatsappRouter.post('/send', async (req, res) => {
+  try {
+    const { instanceName, number, message, type = 'text' } = req.body;
+    
+    if (!instanceName || !number || !message) {
+      return res.status(400).json({
+        success: false,
+        error: 'instanceName, number e message são obrigatórios',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    let messageData;
+    if (type === 'text') {
+      messageData = {
+        number,
+        text: message
+      };
+    } else {
+      messageData = {
+        number,
+        message
+      };
+    }
+
+    const response = await axios.post(`${EVO_URL}/message/sendText/${instanceName}`, messageData, {
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': EVO_APIKEY
+      },
+      timeout: 10000
+    });
+
+    res.json({
+      success: true,
+      data: response.data,
+      instanceName,
+      number,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Erro ao enviar mensagem:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Erro ao enviar mensagem',
+      message: error.response?.data?.message || error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// ==========================================
+// WEBHOOK ROUTER
+// ==========================================
+const webhookRouter = express.Router();
+
+/**
+ * POST /webhook/evolution
+ * Receber webhooks da Evolution API
+ */
+webhookRouter.post('/evolution', async (req, res) => {
+  try {
+    const webhookData = req.body;
+    const authToken = req.headers['authorization'] || req.headers['x-webhook-token'];
+    
+    // Verificar token do webhook se configurado
+    if (EVO_WEBHOOK_TOKEN && authToken !== EVO_WEBHOOK_TOKEN) {
+      return res.status(401).json({
+        success: false,
+        error: 'Token de webhook inválido',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    console.log('📥 Webhook Evolution recebido:', JSON.stringify(webhookData, null, 2));
+    
+    // Processar diferentes tipos de webhook
+    const { event, instance, data } = webhookData;
+    
+    let processed = false;
+    switch (event) {
+      case 'qrcode.updated':
+        console.log('📱 QR Code atualizado para instância:', instance);
+        processed = true;
+        break;
+      case 'connection.update':
+        console.log('🔗 Status de conexão atualizado:', data?.state);
+        processed = true;
+        break;
+      case 'messages.upsert':
+        console.log('💬 Nova mensagem recebida:', data?.messages?.length || 0, 'mensagens');
+        processed = true;
+        break;
+      default:
+        console.log('📋 Evento webhook não tratado:', event);
+    }
+
+    res.json({
+      success: true,
+      processed,
+      event,
+      instance,
+      timestamp: new Date().toISOString(),
+      message: 'Webhook processado com sucesso'
+    });
+
+  } catch (error) {
+    console.error('Erro ao processar webhook:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Erro ao processar webhook',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // ==========================================
 // HEALTH CHECK ENDPOINT
 // ==========================================
@@ -329,7 +534,8 @@ app.get('/health', (req, res) => {
 // ==========================================
 app.use('/api/offers', offersRouter);
 app.use('/api/market-trap-radar', mtrRouter);
-app.use('/whatsapp', whatsappRouter);
+app.use('/api/whatsapp', whatsappRouter);
+app.use('/api/webhook', webhookRouter);
 
 // ==========================================
 // STATUS ENDPOINT (necessário para smoke tests)
@@ -435,6 +641,10 @@ app.use('*', (req, res) => {
       'POST /api/market-trap-radar/detect', 
       'GET /whatsapp/health',
       'GET /whatsapp/status',
+      'POST /api/whatsapp/instance',
+      'GET /api/whatsapp/qr/{instance}',
+      'POST /api/whatsapp/send',
+      'POST /api/webhook/evolution',
       'GET /api/status',
       'GET /api/proof/real-data'
     ],
